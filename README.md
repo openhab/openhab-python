@@ -2,10 +2,6 @@
 
 The helper library is part of this binding and will be deployed to /conf/automation/python/lib/openhab/ during openHAB startup.
 
-### Sources
-
-[./src/main/resources/lib/openhab/](./src/main/resources/lib/openhab/)
-
 ### Examples 
 
 Simple rule
