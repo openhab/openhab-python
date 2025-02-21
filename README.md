@@ -1,6 +1,8 @@
 ## Helper Library
 
-The helper library is part of this binding and will be deployed to /conf/automation/python/lib/openhab/ during openHAB startup.
+This library is a Python library that supports access to automation in openHAB. It provides convenient access to common core openHAB functions that make the full range of Java APIs easily accessible and usable. It does not try to encapsulate every conceivable aspect of the OpenHAB API. Instead, it tries to simplify access to Java APIs and make it more intuitive, following typical python standards.
+
+This library is included by default in the [openHAB Python Scripting Add-on](https://github.com/HolgerHees/openhab-addons/tree/pythonscripting/bundles/org.openhab.automation.pythonscripting).
 
 ### Examples 
 
