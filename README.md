@@ -4,9 +4,26 @@ This library is a Python library that supports access to automation in openHAB. 
 
 This library is included by default in the [openHAB Python Scripting Add-on](https://github.com/HolgerHees/openhab-addons/tree/pythonscripting/bundles/org.openhab.automation.pythonscripting).
 
-### Examples 
+## Creating Python Scripts
 
-Simple rule
+When this add-on is installed, you can select Python3 as a scripting language when creating a script action within the rule editor of the UI.
+
+Alternatively, you can create scripts in the `automation/python` configuration directory. If you create an empty file called `test.py`, you will see a log line with information similar to:
+
+```text
+... [INFO ] [ort.loader.AbstractScriptFileWatcher]] - (Re-)Loading script '/openhab/conf/automation/python/test.py'
+```
+
+To enable debug logging, use the [console logging]({{base}}/administration/logging.html) commands to
+enable debug logging for the automation functionality:
+
+```text
+log:set DEBUG org.openhab.automation.pythonscripting
+```
+
+## Examples 
+
+### Simple rule
 
 ```python
 from openhab import rule, Registry
@@ -48,7 +65,7 @@ class Test4:
             self.logger.info("Item2 was updated")
 ```
  
-Query thing status info
+### Query thing status info
 
 ```python
 from openhab import logger, Registry
@@ -57,7 +74,7 @@ info = Registry.getThing("zwave:serial_zstick:512").getStatusInfo()
 logger.info(info.toString());
 ```
 
-Query historic item
+### Query historic item
 
 ```python
 from openhab import logger, Registry
@@ -70,7 +87,9 @@ historicItem = Registry.getItem("Item2").getPersistence("jdbc").persistedState( 
 logger.info( historicItem.getState().toString() );
 ```
 
-## decorator @rule
+## Decorator 
+
+### decorator @rule
 
 the decorator will register the decorated class as a rule. It will wrap and extend the class with the following functionalities
 
@@ -83,12 +102,28 @@ the decorator will register the decorated class as a rule. It will wrap and exte
 - You can enable a profiler to analyze runtime with argument "profile=1"
 - Every run is logging total runtime and trigger reasons
 
+```python
+from openhab import rule
+from openhab.triggers import GenericCronTrigger
+
+@rule( triggers = [ GenericCronTrigger("*/5 * * * * ?") ] )
+class Test:
+    def execute(self, module, input):
+        self.logger.info("Rule 3 was triggered")
+```
+
 ```
 2025-01-09 09:35:11.002 [INFO ] [tomation.pythonscripting.demo1.Test2] - Rule executed in    0.1 ms [Item: Item1]
 2025-01-09 09:35:15.472 [INFO ] [tomation.pythonscripting.demo1.Test1] - Rule executed in    0.1 ms [Other: TimerEvent]
 ```
 
-## decorator @when
+**'execute'** callback **'input'** parameter
+
+Depending on which trigger type is used, corresponding [event objects](https://www.openhab.org/javadoc/latest/org/openhab/core/items/events/itemevent) are passed via the "input" parameter
+
+The type of the event can also be queried via [AbstractEvent.getTopic](https://www.openhab.org/javadoc/latest/org/openhab/core/events/abstractevent)
+
+### decorator @when
 
 ```python
 @when("Item Test_String_1 changed from 'old test string' to 'new test string'")
@@ -129,7 +164,7 @@ the decorator will register the decorated class as a rule. It will wrap and exte
 @when("Thing updated")
 ```
 
-## decorator @onlyif
+### decorator @onlyif
 
 ```python
 @onlyif("Item Test_Switch_2 equals ON")
@@ -145,13 +180,9 @@ the decorator will register the decorated class as a rule. It will wrap and exte
 @onlyif("Time 9:00 to 14:00")
 ```
 
-## 'execute' callback 'input' parameter
+## Modules
 
-Depending on which trigger type is used, corresponding [event objects](https://www.openhab.org/javadoc/latest/org/openhab/core/items/events/itemevent) are passed via the "input" parameter
-
-The type of the event can also be queried via [AbstractEvent.getTopic](https://www.openhab.org/javadoc/latest/org/openhab/core/events/abstractevent)
-
-## module scope
+### module scope
 
 The scope module encapsulates all [default jsr223 objects/presents](https://www.openhab.org/docs/configuration/jsr223.html#default-preset-importpreset-not-required) into a new object. You can use it like below
 
@@ -193,7 +224,7 @@ from org.openhab.core import OpenHAB
 print(str(OpenHAB.getVersion()))
 ```
 
-## module openhab
+### module openhab
 
 | Class                    | Usage                                                                                 | Description                                                                                         |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
@@ -203,7 +234,7 @@ print(str(OpenHAB.getVersion()))
 | Timer                    | see [Timer class](#class-timer)                                                       | Static Timer class to create, start and stop timers                                                 |
 | Set                      | see [Set class](#class-set)                                                           | Set object                                                                                          |
 
-## module openhab.actions
+### module openhab.actions
 
 | Class                    | Usage                                                                                 | Description                                                                                         |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
@@ -220,7 +251,7 @@ print(str(OpenHAB.getVersion()))
 | Voice                    | see [openhab Voice api](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/voice)      |                                                                          |
 | NotificationAction       |                                                                                       | e.g. NotificationAction.sendNotification("test@test.org", "Window is open")                         |
 
-## module openhab.triggers
+### module openhab.triggers
 
 | Class                    | Usage                                                                                 | Description                                                                                         |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
@@ -249,7 +280,9 @@ print(str(OpenHAB.getVersion()))
 | TimeOfDayCondition       | TimeOfDayCondition(start_time, end_time, condition_name=None)                         |                                                                                                     |
 | IntervalCondition        | IntervalCondition(min_interval, condition_name=None)                                  |                                                                                                     |
 
-## class Registry 
+## Classes
+
+### class Registry 
 
 | Function                 | Usage                                                                                 | Return Value                                                                                         |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
@@ -263,7 +296,7 @@ print(str(OpenHAB.getVersion()))
 | removeItemMetadata       | removeItemMetadata(item_or_item_name, namespace = None)                               | [openHAB Metadata](https://www.openhab.org/javadoc/latest/org/openhab/core/items/metadata) |
 
 
-## class Item 
+### class Item 
 
 Item is a wrapper around [openHAB Item](https://www.openhab.org/javadoc/latest/org/openhab/core/items/item) with additional functionality.
 
@@ -277,11 +310,11 @@ Item is a wrapper around [openHAB Item](https://www.openhab.org/javadoc/latest/o
 | getSemantic              | getSemantic()                                                                         | [ItemSemantic](#class-itemsemantic)                                               |
 | <...>                    | see [openHAB Item api](https://www.openhab.org/javadoc/latest/org/openhab/core/items/item) |                                                                                                |
 
-## class GroupItem 
+### class GroupItem 
 
 GroupItem is an extended [Item](#class-item) which wraps results from getAllMembers & getMembers into [Items](#class-item)
 
-## class ItemPersistence 
+### class ItemPersistence 
 
 ItemPersistence is a wrapper around [openHAB PersistenceExtensions](https://www.openhab.org/javadoc/latest/org/openhab/core/persistence/extensions/persistenceextensions). The parameters 'item' and 'serviceId', as part of the Wrapped Java API, are not needed, because they are inserted automatically.
 
@@ -291,7 +324,7 @@ ItemPersistence is a wrapper around [openHAB PersistenceExtensions](https://www.
 | getStableState           | getStableState(time_slot, end_time = None)                                            | Average calculation which takes into account the values ​​depending on their duration                 |
 | <...>                    | see [openHAB PersistenceExtensions api](https://www.openhab.org/javadoc/latest/org/openhab/core/persistence/extensions/persistenceextensions) |                                             |
 
-## class ItemSemantic 
+### class ItemSemantic 
 
 ItemSemantic is a wrapper around [openHAB Semantics](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/semantics). The parameters 'item', as part of the Wrapped Java API, is not needed because it is inserted automatically.
 
@@ -299,7 +332,7 @@ ItemSemantic is a wrapper around [openHAB Semantics](https://www.openhab.org/jav
 | ------------------------ | ------------------------------------------------------------------------------------- |
 | <...>                    | see [openHAB Semantics api](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/semantics) |
 
-## class Thing 
+### class Thing 
 
 Thing is a wrapper around [openHAB Thing](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/thing). 
 
@@ -307,7 +340,7 @@ Thing is a wrapper around [openHAB Thing](https://www.openhab.org/javadoc/latest
 | ------------------------ | ------------------------------------------------------------------------------------- |
 | <...>                    | see [openHAB Thing api](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/thing) |
 
-## class Channel 
+### class Channel 
 
 Channel is a wrapper around [openHAB Channel](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/type/channelgrouptype). 
 
@@ -315,17 +348,19 @@ Channel is a wrapper around [openHAB Channel](https://www.openhab.org/javadoc/la
 | ------------------------ | ------------------------------------------------------------------------------------- |
 | <...>                    | see [openHAB Channel api](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/type/channelgrouptype) |
 
-## class Timer 
+### class Timer 
 
 | Function                 | Usage                                                                                 | Description                                                                                         |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
 | createTimeout            | createTimeout(duration, callback, args=[], kwargs={}, old_timer = None, max_count = 0 ) | Create a timer that will run callback with arguments args and keyword arguments kwargs, after duration seconds have passed. If old_timer from e.g previous call is provided, it will be stopped if not already triggered. If max_count together with old_timer is provided, then 'max_count' times the old timer will be stopped and recreated, before the callback will be triggered immediately |
 
-## class Set
+### class Set
 
 This is a helper class which makes it possible to use a python 'set' as an argument for java class method calls
 
-## python <=> java conversion
+## Others
+
+### python <=> java conversion
 
 Conversion occurs in both directions
 
@@ -338,7 +373,7 @@ Conversion occurs in both directions
 | Set(set)                  | Set           |
 | Item                      | Item          |
 
-## limitations
+### limitations
 
 - graalby can't handle arguments in constructors of java objects. Means you can't instantiate a javaobject in python with a parameter. https://github.com/oracle/graalpython/issues/367
 - graalpy does not really support python 'set' types as arguments of function calls to java objects https://github.com/oracle/graalpython/issues/260
