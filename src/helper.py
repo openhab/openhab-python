@@ -553,8 +553,6 @@ class Set(list):
     def isSetType(self):
         return True
 
-timerIsAllowed = not TopCallStackFrame['oh.engine-identifier'].startswith("openhab-transformation-script-")
-
 # Timer will not work in transformations scripts, because LIFECYLE_TRACKER cleanup will never run successfully
 class Timer():
     # could also be solved by storing it in a private cache => https://next.openhab.org/docs/configuration/jsr223.html
@@ -607,9 +605,6 @@ class Timer():
             raise
 
     def start(self):
-        if not timerIsAllowed:
-            raise Exception("Timer not allowed in this script type")
-
         if not self.timer.is_alive():
             #log.info("timer started")
             Timer.activeTimer.append(self)
@@ -624,5 +619,4 @@ class Timer():
         else:
             pass
 
-if timerIsAllowed:
-    LIFECYCLE_TRACKER.addDisposeHook(Timer._clean)
+LIFECYCLE_TRACKER.addDisposeHook(Timer._clean)
