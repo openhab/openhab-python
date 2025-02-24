@@ -70,8 +70,8 @@ LIFECYCLE_TRACKER = scope.lifecycleTracker
 Java_LogFactory = java.type("org.slf4j.LoggerFactory")
 LOG_PREFIX = "org.openhab.core.automation.pythonscripting"
 NAME_PREFIX = ""
-if '__file__' in TopCallStackFrame:
-    file_package = os.path.basename(TopCallStackFrame['__file__'])[:-3]
+if 'javax.script.filename' in TopCallStackFrame:
+    file_package = os.path.basename(TopCallStackFrame['javax.script.filename'])[:-3]
     LOG_PREFIX = "{}.{}".format(LOG_PREFIX, file_package)
     NAME_PREFIX = "{}".format(file_package)
 elif 'ruleUID' in TopCallStackFrame:
