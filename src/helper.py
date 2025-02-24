@@ -74,6 +74,9 @@ if '__file__' in TopCallStackFrame:
     file_package = os.path.basename(TopCallStackFrame['__file__'])[:-3]
     LOG_PREFIX = "{}.{}".format(LOG_PREFIX, file_package)
     NAME_PREFIX = "{}".format(file_package)
+elif 'ruleUID' in TopCallStackFrame:
+    LOG_PREFIX = "{}.{}".format(LOG_PREFIX, TopCallStackFrame['ruleUID'])
+    NAME_PREFIX = "{}".format(TopCallStackFrame['ruleUID'])
 logger = Java_LogFactory.getLogger( LOG_PREFIX )
 # *****************************************************************
 
