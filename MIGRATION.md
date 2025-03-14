@@ -26,6 +26,8 @@ or just import variables you really need
 from scope import ON, OFF, UP, DOWN
 ```
 
+for more details can be found in [scope readme](https://github.com/HolgerHees/openhab-python/blob/main/README.md#using-scope)
+
 ### Logging
 
 legacy syntax
@@ -105,6 +107,7 @@ class ChannelEventExampleDecorators():
 for more details can be found
 - [rule decorator](https://github.com/HolgerHees/openhab-python?tab=readme-ov-file#decorator-rule)
 - [when decorator](https://github.com/HolgerHees/openhab-python?tab=readme-ov-file#decorator-when)
+- [onlyif decorator](https://github.com/HolgerHees/openhab-python/blob/main/README.md#decorator-onlyif)
 
 ### Get an Item, Things, Channel
 
@@ -129,7 +132,7 @@ for more details check [registry function list](https://github.com/HolgerHees/op
 
 ### import changes
 
-It is mostly a rename of "core" to "openhab". Additionaly the order of parameters in Trigger classes are changed. "state" and "previous_status" is swapped. If you already use named parameters, you you don't need to change anything.
+It is mostly a rename of "core" to "openhab". Additionaly the order of parameters in Trigger classes are changed. "state" and "previous_status" is swapped. If you already use named parameters, you don't need to change anything.
 
 legacy syntax (e.g)
 
@@ -143,3 +146,7 @@ new syntax
 from openhab.actions import Exec
 from openhab.triggers import ItemCommandTrigger
 ```
+
+for more details can be found
+- [actions module](https://github.com/HolgerHees/openhab-python/blob/main/README.md#module-openhabactions)
+- [triggers module](https://github.com/HolgerHees/openhab-python/blob/main/README.md#module-openhabtriggers)
