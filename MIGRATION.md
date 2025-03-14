@@ -43,6 +43,8 @@ from openhab import logging
 logging.info("Testmessage")
 ```
 
+for more details can be found in [logging readme](https://github.com/HolgerHees/openhab-python?tab=readme-ov-file#logging)
+
 ### Rules
 
 The @rule decorator can be used unchanged. The name as a first attribute is completly optional. If not provided, the class or function name is used as the rule name.
@@ -100,6 +102,10 @@ class ChannelEventExampleDecorators():
         self.logger.info("Sunset triggered")
 ```
 
+for more details can be found
+- [rule decorator](https://github.com/HolgerHees/openhab-python?tab=readme-ov-file#decorator-rule)
+- [when decorator](https://github.com/HolgerHees/openhab-python?tab=readme-ov-file#decorator-when)
+
 ### Get an Item, Things, Channel
 
 legacy syntax
@@ -119,6 +125,7 @@ Registry.getThing("hue:bridge-api2:default")
 Registry.getChannel("astro:sun:local:set#event")
 ```
 
+for more details check [registry function list](https://github.com/HolgerHees/openhab-python?tab=readme-ov-file#class-registry)
 
 ### import changes
 
