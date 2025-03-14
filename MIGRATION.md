@@ -141,5 +141,5 @@ from core.triggers import ItemCommandTrigger
 new syntax
 ```python
 from openhab.actions import Exec
-from openhab.actions import ItemCommandTrigger
+from openhab.triggers import ItemCommandTrigger
 ```
