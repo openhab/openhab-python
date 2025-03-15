@@ -26,7 +26,7 @@ or just import variables you really need
 from scope import ON, OFF, UP, DOWN
 ```
 
-for more details can be found in [scope readme](https://github.com/HolgerHees/openhab-python/blob/main/README.md#using-scope)
+more details can be found in the [scope readme](https://github.com/HolgerHees/openhab-python/blob/main/README.md#using-scope)
 
 ### Logging
 
@@ -45,7 +45,7 @@ from openhab import logging
 logging.info("Testmessage")
 ```
 
-for more details can be found in [logging readme](https://github.com/HolgerHees/openhab-python?tab=readme-ov-file#logging)
+more details can be found in the [logging readme](https://github.com/HolgerHees/openhab-python?tab=readme-ov-file#logging)
 
 ### Rules
 
@@ -104,7 +104,7 @@ class ChannelEventExampleDecorators():
         self.logger.info("Sunset triggered")
 ```
 
-for more details can be found
+more details can be found in
 - [rule decorator](https://github.com/HolgerHees/openhab-python?tab=readme-ov-file#decorator-rule)
 - [when decorator](https://github.com/HolgerHees/openhab-python?tab=readme-ov-file#decorator-when)
 - [onlyif decorator](https://github.com/HolgerHees/openhab-python/blob/main/README.md#decorator-onlyif)
@@ -128,7 +128,7 @@ Registry.getThing("hue:bridge-api2:default")
 Registry.getChannel("astro:sun:local:set#event")
 ```
 
-for more details check [registry function list](https://github.com/HolgerHees/openhab-python?tab=readme-ov-file#class-registry)
+more details can be found in the [registry function list](https://github.com/HolgerHees/openhab-python?tab=readme-ov-file#class-registry)
 
 ### import changes
 
@@ -147,6 +147,6 @@ from openhab.actions import Exec
 from openhab.triggers import ItemCommandTrigger
 ```
 
-for more details can be found
+more details can be found in
 - [actions module](https://github.com/HolgerHees/openhab-python/blob/main/README.md#module-openhabactions)
 - [triggers module](https://github.com/HolgerHees/openhab-python/blob/main/README.md#module-openhabtriggers)
