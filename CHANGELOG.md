@@ -1,10 +1,28 @@
 ## UPCOMMING
 
-* added scope object (for details check https://github.com/HolgerHees/openhab-python?tab=readme-ov-file#module-scope)
-* add import wrapper 
-* cleanups and minor helper lib api changes
-* added IntercalCondition to triggers
-* use OSGI-ified version of polyglot (this fixes https://github.com/openhab/openhab-addons/issues/18054 in openhab >= 5)
+* code cleanups and refactorings based on feedback and code reviews
+* helperlib fix to support upcomming graalpy 24.2.0
+
+## 24.02.2025 18:06
+
+* script context cleanup/close fix for compiled scripts (e.g. transformation scripts)
+* log prefix for UI based and transformation scripts fixed
+* logging cleanup and simplification
+
+## 23.02.2025 20:57
+
+* add scope, Registry and logger auto injected for UI based rules
+
+## 23.02.2025 12:02
+
+* added scope object and import wrapper
+  * for details check [here](https://github.com/HolgerHees/openhab-python/tree/main?tab=readme-ov-file#module-scope)
+* added IntervalCondition to triggers
+* cleanup and minor helper lib api changes
+* cleanup and simplification of helper lib deployment (no hardcoded filenames anymore)
+* use OSGI-ified version of polyglot in openhab 5 (this fixes openhab/openhab-addons#18054 in openhab >= 5)
+* migrate openhab helper lib into his [own repository](https://github.com/HolgerHees/openhab-python)
+  * This makes it easier to decouple release cycles between openhab and helper lib
 
 ## 06.02.2025 07:30
 

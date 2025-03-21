@@ -129,9 +129,6 @@ class rule():
 
         # dummy helper to avoid "org.graalvm.polyglot.PolyglotException: java.lang.IllegalStateException: unknown type com.oracle.truffle.host.HostObject"
         class BaseSimpleRule(Java_SimpleRule):
-            def __init__(self):
-                Java_SimpleRule.__init__(self)
-
             def execute(self, module, input):
                 proxy.executeWrapper(rule_obj, rule_isfunction, module, input)
 
