@@ -68,7 +68,7 @@ LIFECYCLE_TRACKER = scope.lifecycleTracker
 
 # **** LOGGING ****
 Java_LogFactory = java.type("org.slf4j.LoggerFactory")
-LOG_PREFIX = "org.openhab.core.automation.pythonscripting"
+LOG_PREFIX = "org.openhab.automation.pythonscripting"
 NAME_PREFIX = ""
 if 'javax.script.filename' in TopCallStackFrame:
     file_package = os.path.basename(TopCallStackFrame['javax.script.filename'])[:-3]
