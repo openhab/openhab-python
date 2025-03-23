@@ -1,7 +1,7 @@
 ## UPCOMMING
 
 * fix script unload/cleanup
-* update to graalpy 24.2.0 (openhab5/jdk21 only, openhab4/jdk17 stays with graalpy 24.1.2)
+* update to graalpy 24.2.0
 * simplified createTimer implementation
 * helperlib fix to support upcomming graalpy 24.2.0
 * code cleanups and refactorings based on feedback and code reviews
