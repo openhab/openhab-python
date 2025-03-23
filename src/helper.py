@@ -129,6 +129,9 @@ class rule():
 
         # dummy helper to avoid "org.graalvm.polyglot.PolyglotException: java.lang.IllegalStateException: unknown type com.oracle.truffle.host.HostObject"
         class BaseSimpleRule(Java_SimpleRule):
+            def __init__(self):
+                Java_SimpleRule.__init__(self)
+
             def execute(self, module, input):
                 proxy.executeWrapper(rule_obj, rule_isfunction, module, input)
 
@@ -551,7 +554,7 @@ class Set(list):
         return True
 
 # Timer will not work in transformations scripts, because LIFECYLE_TRACKER cleanup will never run successfully
-class Timer():
+class Timer(threading.Timer):
     # could also be solved by storing it in a private cache => https://next.openhab.org/docs/configuration/jsr223.html
     # because Timer & ScheduledFuture are canceled when a private cache is cleaned on unload or refresh
     activeTimer = []
@@ -581,16 +584,12 @@ class Timer():
         return timer
 
     def __init__(self, duration, callback, args=[], kwargs={}):
+        super().__init__(duration, self.handler, [ args, kwargs])
         self.callback = callback
-        self.args = args
-        self.kwargs = kwargs
 
-        self.timer = threading.Timer(duration, self.handler)
-        #log.info(str(self.timer))
-
-    def handler(self):
+    def handler(self, args=[], kwargs={}):
         try:
-            self.callback(*self.args, **self.kwargs)
+            self.callback(*args, **kwargs)
             try:
                 Timer.activeTimer.remove(self)
             except ValueError:
@@ -602,18 +601,16 @@ class Timer():
             raise
 
     def start(self):
-        if not self.timer.is_alive():
-            #log.info("timer started")
-            Timer.activeTimer.append(self)
-            self.timer.start()
-        else:
-            pass
+        if self.is_alive():
+            return
+        #log.info("timer started")
+        Timer.activeTimer.append(self)
+        super().start()
 
     def cancel(self):
-        if self.timer.is_alive():
-            Timer.activeTimer.remove(self)
-            self.timer.cancel()
-        else:
-            pass
+        if not self.is_alive():
+            return
+        Timer.activeTimer.remove(self)
+        super().cancel()
 
 LIFECYCLE_TRACKER.addDisposeHook(Timer._clean)
