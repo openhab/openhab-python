@@ -64,7 +64,7 @@ EVENT_BUS         = scope.events
 #scriptExtension   = scope.scriptExtension
 
 AUTOMATION_MANAGER = RuleSupport.automationManager
-UNLOAD_TRACKER = scope.unloadTracker
+LIFECYCLE_TRACKER = scope.lifecycleTracker
 
 # **** LOGGING ****
 Java_LogFactory = java.type("org.slf4j.LoggerFactory")
@@ -610,4 +610,4 @@ class Timer(threading.Timer):
         Timer.activeTimer.remove(self)
         super().cancel()
 
-UNLOAD_TRACKER.addDisposeHook(Timer._clean)
+LIFECYCLE_TRACKER.addDisposeHook(Timer._clean)
