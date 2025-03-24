@@ -1,5 +1,8 @@
+# changelog combines changes from helper lib and related openhab binding
+
 ## UPCOMMING
 
+* move helper libs from private repo to [openhab repo](https://github.com/openhab/openhab-python)
 * fix script unload/cleanup
 * update to graalpy 24.2.0
 * simplified createTimer implementation
