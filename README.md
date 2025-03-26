@@ -472,6 +472,72 @@ This is a helper class which makes it possible to use a python 'set' as an argum
 
 ## Others
 
+### Threading
+
+Thread or timer objects which was started by itself should be registered in the lifecycleTracker to be cleaned during script unload.
+
+```python
+import scope
+import threading
+
+class Timer(theading.Timer):
+    def __init__(self, duration, callback):
+        super().__init__(duration, callback)
+
+    def shutdown(self):
+        if not self.is_alive():
+            return
+        self.cancel()
+        self.join()
+
+def test():
+    print("timer triggered")
+
+job = Timer(60, test)
+job.start()
+
+scope.lifecycleTracker.addDisposeHook(job.shutdown)
+```
+
+Timer objects created via `openhab.Timer.createTimeout`, however, automatically register in the disposeHook and are cleaned on script unload.
+
+```python
+from openhab import Timer
+
+def test():
+    print("timer triggered")
+
+Timer.createTimeout(60, test)
+```
+
+Below is a complex example of 2 sensor values ​​that are expected to be transmitted in a certain time window (e.g. one after the other).
+
+After the first state change, the timer wait 5 seconds, before it updates the final target value. If the second value arrives before this time frame, the final target value is updated immediately.
+
+```python
+from openhab import rule, Registry
+from openhab.triggers import ItemStateChangeTrigger
+
+@rule(
+    triggers = [
+        ItemStateChangeTrigger("Room_Temperature_Value"),
+        ItemStateChangeTrigger("Room_Humidity_Value")
+    ]
+)
+class UpdateInfo:
+    def __init__(self):
+        self.update_timer = None
+    
+    def updateInfoMessage(self):
+        msg = "{}{} °C, {} %".format(Registry.getItemState("Room_Temperature_Value").format("%.1f"), Registry.getItemState("Room_Temperature_Value").format("%.0f"))
+        Registry.getItem("Room_Info").postUpdate(msg)
+        self.update_timer = None
+
+    def execute(self, module, input):
+        self.update_timer = Timer.createTimeout(5, self.updateInfoMessage, old_timer = self.update_timer, max_count=2 )
+
+```
+
 ### python <=> java conversion
 
 Conversion occurs in both directions
