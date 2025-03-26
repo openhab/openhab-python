@@ -560,6 +560,7 @@ class Timer(threading.Timer):
     def _clean():
         for timer in list(Timer.activeTimer):
             timer.cancel()
+            timer.join(5)
 
     @staticmethod
     def createTimeout(duration, callback, args=[], kwargs={}, old_timer = None, max_count = 0 ):
