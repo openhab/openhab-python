@@ -202,7 +202,8 @@ class Test:
 
 ### decorator @rule
 
-the decorator will register the decorated class as a rule. It will wrap and extend the class with the following functionalities
+The decorator will register the decorated class as a rule. 
+It will wrap and extend the class with the following functionalities
 
 - Register the class or function as a rule
 - If name is not provided, a fallback name in the form "{filename}.{function_or_classname}" is created
