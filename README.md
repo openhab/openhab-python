@@ -556,11 +556,11 @@ Conversion occurs in both directions
 
 #### Exception during helper lib initialisation
 
-This error happens if there where problems during the deployment of the helper libs. A typical error is an insufficient permission. The folder "conf/automation/python/" must be writeable by openhab
+There were problems during the deployment of the helper libs. A typical error is an insufficient permission. The folder "conf/automation/python/" must be writeable by openhab.
 
 #### Failed to inject import wrapper
 
-This error happens if there where problems reading the python source file "conf/automation/python/lib/openhab/__wrapper__.py"
+The reading the python source file "conf/automation/python/lib/openhab/__wrapper__.py" failed.
 
 This could either a permission/owner problem or a problem during deployment of the helper libs. You should check that this file exists and it is readable by openhab.
 
