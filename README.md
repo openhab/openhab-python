@@ -552,6 +552,20 @@ Conversion occurs in both directions
 | Set(set)                  | Set           |
 | Item                      | Item          |
 
+### typical log errors
+
+#### Exception during helper lib initialisation
+
+This error happens if there where problems during the deployment of the helper libs. A typical error is an insufficient permission. The folder "conf/automation/python/" must be writeable by openhab
+
+#### Failed to inject import wrapper
+
+This error happens if there where problems reading the python source file "conf/automation/python/lib/openhab/__wrapper__.py"
+
+This could either a permission/owner problem or a problem during deployment of the helper libs. You should check that this file exists and it is readable by openhab.
+
+You should also check your logs for a message related to the helper lib deployment by just grep for "helper lib"
+
 ### limitations
 
 - graalby can't handle arguments in constructors of java objects. Means you can't instantiate a javaobject in python with a parameter. https://github.com/oracle/graalpython/issues/367
