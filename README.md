@@ -562,9 +562,7 @@ There were problems during the deployment of the helper libs. A typical error is
 
 The reading the python source file "conf/automation/python/lib/openhab/__wrapper__.py" failed.
 
-This could either a permission/owner problem or a problem during deployment of the helper libs. You should check that this file exists and it is readable by openhab.
-
-You should also check your logs for a message related to the helper lib deployment by just grep for "helper lib"
+This could either a permission/owner problem or a problem during deployment of the helper libs. You should check that this file exists and it is readable by openhab. You should also check your logs for a message related to the helper lib deployment by just grep for "helper lib"
 
 ### limitations
 
