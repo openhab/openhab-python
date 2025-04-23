@@ -11,7 +11,7 @@ When this add-on is installed, you can select Python3 as a scripting language wh
 Alternatively, you can create scripts in the `automation/python` configuration directory. If you create an empty file called `test.py`, you will see a log line with information similar to:
 
 ```text
-... [INFO ] [ort.loader.AbstractScriptFileWatcher]] - (Re-)Loading script '/openhab/conf/automation/python/test.py'
+... [INFO ] [ort.loader.AbstractScriptFileWatcher] - (Re-)Loading script '/openhab/conf/automation/python/test.py'
 ```
 
 To enable debug logging, use the [console logging]({{base}}/administration/logging.html) commands to
@@ -327,7 +327,7 @@ from scope import cache
 from scope import osgi
 ```
 
-Additionally you can import all java classes from 'org.openhab' package like
+Additionally you can import all Java classes from 'org.openhab' package like
 
 
 ```python
@@ -539,7 +539,7 @@ class UpdateInfo:
 
 ```
 
-### python <=> java conversion
+### Python <=> Java conversion
 
 Conversion occurs in both directions
 
