@@ -14,7 +14,7 @@ Alternatively, you can create scripts in the `automation/python` configuration d
 ... [INFO ] [ort.loader.AbstractScriptFileWatcher] - (Re-)Loading script '/openhab/conf/automation/python/test.py'
 ```
 
-To enable debug logging, use the [console logging]({{base}}/administration/logging.html) commands to
+To enable debug logging, use the [console logging](https://openhab.org/docs/administration/logging.html) commands to
 enable debug logging for the automation functionality:
 
 ```text
@@ -54,7 +54,7 @@ By default, the scope, Registry and logger is automatically imported for UI base
 :::
  
 
-## `PY3` Transformation
+## `PY` Transformation
 
 openHAB provides several [data transformation services](https://www.openhab.org/addons/#transform) as well as the script transformations, that are available from the framework and need no additional installation.
 It allows transforming values using any of the available scripting languages, which means Python Scripting is supported as well.
@@ -72,15 +72,15 @@ Use Python Scripting as script transformation by:
    calc(input)
    ```
 
-2. Using `PY3(<scriptname>.py):%s` as Item state transformation.
-3. Passing parameters is also possible by using a URL like syntax: `PY3(<scriptname>.py?arg=value)`.
+2. Using `PY(<scriptname>.py):%s` as Item state transformation.
+3. Passing parameters is also possible by using a URL like syntax: `PY(<scriptname>.py?arg=value)`.
    Parameters are injected into the script and can be referenced like variables.
 
-Simple transformations can aso be given as an inline script: `PY3(|...)`, e.g. `PY3(|"String has " + input.length + "characters")`.
+Simple transformations can also be given as an inline script: `PY(|...)`, e.g. `PY(|"String has " + input.length + "characters")`.
 It should start with the `|` character, quotes within the script may need to be escaped with a backslash `\` when used with another quoted string as in text configurations.
 
 ::: tip Note
-By default, the scope, Registry and logger is automatically imported for `PY3` Transformation scripts
+By default, the scope, Registry and logger is automatically imported for `PY` Transformation scripts
 :::
 
 ## Examples 
@@ -165,7 +165,7 @@ Registry.getItem("Item1").sendCommand(ON)
 
 There are 3 ways of logging.
 
-1. using normal print statements. In this case they are redirected to the default openhab logfile and marked with log level INFO or ERROR
+1. using normal print statements. In this case they are redirected to the default openHAB logfile and marked with log level INFO or ERROR
 
 ```python
 import sys
@@ -340,7 +340,7 @@ print(str(OpenHAB.getVersion()))
 
 | Class                    | Usage                                                                                 | Description                                                                                         |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| rule                     | @rule( name=None, description=None, tags=None, triggers=None, conditions=None, profile=None) | [Rule decorator](#decorator-rule) to wrap a custom class into a rule                        |
+| rule                     | @rule( name=None, description=None, tags=None, triggers=None, conditions=None, profile=None) | [Rule decorator](#decorator-rule) to wrap a custom class into a rule                         |
 | logger                   | logger.info, logger.warn ...                                                          | Logger object with prefix 'org.automation.pythonscripting.{filename}'                               |
 | Registry                 | see [Registry class](#class-registry)                                                 | Static Registry class used to get items, things or channels                                         |
 | Timer                    | see [Timer class](#class-timer)                                                       | Static Timer class to create, start and stop timers                                                 |
@@ -350,26 +350,26 @@ print(str(OpenHAB.getVersion()))
 
 | Class                    | Usage                                                                                 | Description                                                                                         |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Audio                    | see [openhab Audio api](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/audio)      |                                                                          |
-| BusEvent                 | see [openhab BusEvent api](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/busevent) |                                                                         |
-| Ephemeris                | see [openhab Ephemeris api](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/ephemeris) |                                                                       |
-| Exec                     | see [openhab Exec api](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/exec)        | e.g. Exec.executeCommandLine(timedelta(seconds=1), "whoami")             |
-| HTTP                     | see [openhab HTTP api](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/http)        |                                                                          |
-| Log                      | see [openhab Log api](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/log)          |                                                                          |
-| Ping                     | see [openhab Ping api](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/ping)        |                                                                          |
-| ScriptExecution          | see [openhab ScriptExecution api](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/scriptexecution) |                                                           |
-| Semantic                 | see [openhab Semantic api](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/semantic) |                                                                         |
-| ThingAction              | see [openhab ThingAction api](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/things) |                                                                   |
-| Transformation           | see [openhab Transformation api](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/transformation) |                                                             |
-| Voice                    | see [openhab Voice api](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/voice)      |                                                                          |
+| Audio                    | see [openHAB Audio API](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/audio)      |                                                                          |
+| BusEvent                 | see [openHAB BusEvent API](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/busevent) |                                                                         |
+| Ephemeris                | see [openHAB Ephemeris API](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/ephemeris) |                                                                       |
+| Exec                     | see [openHAB Exec API](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/exec)        | e.g. Exec.executeCommandLine(timedelta(seconds=1), "whoami")             |
+| HTTP                     | see [openHAB HTTP API](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/http)        |                                                                          |
+| Log                      | see [openHAB Log API](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/log)          |                                                                          |
+| Ping                     | see [openHAB Ping API](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/ping)        |                                                                          |
+| ScriptExecution          | see [openHAB ScriptExecution API](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/scriptexecution) |                                                           |
+| Semantic                 | see [openHAB Semantic API](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/semantic) |                                                                         |
+| ThingAction              | see [openHAB ThingAction API](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/things) |                                                                        |
+| Transformation           | see [openHAB Transformation API](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/transformation) |                                                             |
+| Voice                    | see [openHAB Voice API](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/voice)      |                                                                          |
 | NotificationAction       |                                                                                       | e.g. NotificationAction.sendNotification("test@test.org", "Window is open")                         |
 
 ### module openhab.triggers
 
 | Class                    | Usage                                                                                 | Description                                                                                         |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| when                     | @when(term_as_string)                                                                 | [When trigger decorator](#decorator-when) to create a trigger by a term                            |
-| onlyif                   | @onlyif(term_as_string)                                                               | [Onlyif condition decorator](#decorator-onlyif) to create a condition by a term                    |
+| when                     | @when(term_as_string)                                                                 | [When trigger decorator](#decorator-when) to create a trigger by a term                             |
+| onlyif                   | @onlyif(term_as_string)                                                               | [Onlyif condition decorator](#decorator-onlyif) to create a condition by a term                     |
 | ChannelEventTrigger      | ChannelEventTrigger(channel_uid, event=None, trigger_name=None)                       |                                                                                                     |
 | ItemStateUpdateTrigger   | ItemStateUpdateTrigger(item_name, state=None, trigger_name=None)                      |                                                                                                     |
 | ItemStateChangeTrigger   | ItemStateChangeTrigger(item_name, state=None, previous_state=None, trigger_name=None) |                                                                                                     |
@@ -397,31 +397,31 @@ print(str(OpenHAB.getVersion()))
 
 ### class Registry 
 
-| Function                 | Usage                                                                                 | Return Value                                                                                         |
+| Function                 | Usage                                                                                 | Return Value                                                                                        |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| getThing                 | getThing(uid)                                                                         | [Thing](#class-thing)                                                             |
-| getChannel               | getChannel(uid)                                                                       | [Channel](#class-channel)                                                         |
-| getItem                  | getItem(item_name)                                                                    | [Item](#class-item) or [GroupItem](#class-groupitem)                       |
-| resolveItem              | resolveItem(item_or_item_name)                                                        | [Item](#class-item) or [GroupItem](#class-groupitem)                       |
-| getItemState             | getItemState(item_name, default = None)                                               | [openHAB State](https://www.openhab.org/javadoc/latest/org/openhab/core/types/state)       |
-| getItemMetadata          | getItemMetadata(item_or_item_name, namespace)                                         | [openHAB Metadata](https://www.openhab.org/javadoc/latest/org/openhab/core/items/metadata) |
-| setItemMetadata          | setItemMetadata(item_or_item_name, namespace, value, configuration=None)              | [openHAB Metadata](https://www.openhab.org/javadoc/latest/org/openhab/core/items/metadata) |
-| removeItemMetadata       | removeItemMetadata(item_or_item_name, namespace = None)                               | [openHAB Metadata](https://www.openhab.org/javadoc/latest/org/openhab/core/items/metadata) |
+| getThing                 | getThing(uid)                                                                         | [Thing](#class-thing)                                                                               |
+| getChannel               | getChannel(uid)                                                                       | [Channel](#class-channel)                                                                           |
+| getItem                  | getItem(item_name)                                                                    | [Item](#class-item) or [GroupItem](#class-groupitem)                                                |
+| resolveItem              | resolveItem(item_or_item_name)                                                        | [Item](#class-item) or [GroupItem](#class-groupitem)                                                |
+| getItemState             | getItemState(item_name, default = None)                                               | [openHAB State](https://www.openhab.org/javadoc/latest/org/openhab/core/types/state)                |
+| getItemMetadata          | getItemMetadata(item_or_item_name, namespace)                                         | [openHAB Metadata](https://www.openhab.org/javadoc/latest/org/openhab/core/items/metadata)          |
+| setItemMetadata          | setItemMetadata(item_or_item_name, namespace, value, configuration=None)              | [openHAB Metadata](https://www.openhab.org/javadoc/latest/org/openhab/core/items/metadata)          |
+| removeItemMetadata       | removeItemMetadata(item_or_item_name, namespace = None)                               | [openHAB Metadata](https://www.openhab.org/javadoc/latest/org/openhab/core/items/metadata)          |
 
 
 ### class Item 
 
 Item is a wrapper around [openHAB Item](https://www.openhab.org/javadoc/latest/org/openhab/core/items/item) with additional functionality.
 
-| Function                 | Usage                                                                                 | Return Value                                                                                         |
+| Function                 | Usage                                                                                 | Return Value                                                                                        |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
 | postUpdate               | postUpdate(state)                                                                     |                                                                                                     |
 | postUpdateIfDifferent    | postUpdateIfDifferent(state)                                                          |                                                                                                     |
 | sendCommand              | sendCommand(command)                                                                  |                                                                                                     |
 | sendCommandIfDifferent   | sendCommandIfDifferent(command)                                                       |                                                                                                     |
-| getPersistence           | getPersistence(service_id = None)                                                     | [ItemPersistence](#class-itempersistence)                                         |
-| getSemantic              | getSemantic()                                                                         | [ItemSemantic](#class-itemsemantic)                                               |
-| <...>                    | see [openHAB Item api](https://www.openhab.org/javadoc/latest/org/openhab/core/items/item) |                                                                                                |
+| getPersistence           | getPersistence(service_id = None)                                                     | [ItemPersistence](#class-itempersistence)                                                           |
+| getSemantic              | getSemantic()                                                                         | [ItemSemantic](#class-itemsemantic)                                                                 |
+| <...>                    | see [openHAB Item API](https://www.openhab.org/javadoc/latest/org/openhab/core/items/item) |                                                                                                |
 
 ### class GroupItem 
 
@@ -433,9 +433,9 @@ ItemPersistence is a wrapper around [openHAB PersistenceExtensions](https://www.
 
 | Function                 | Usage                                                                                 | Description                                                                                         |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| getStableMinMaxState     | getStableMinMaxState(time_slot, end_time = None)                                      | Average calculation which takes into account the values ​​depending on their duration                 |
-| getStableState           | getStableState(time_slot, end_time = None)                                            | Average calculation which takes into account the values ​​depending on their duration                 |
-| <...>                    | see [openHAB PersistenceExtensions api](https://www.openhab.org/javadoc/latest/org/openhab/core/persistence/extensions/persistenceextensions) |                                             |
+| getStableMinMaxState     | getStableMinMaxState(time_slot, end_time = None)                                      | Average calculation which takes into account the values depending on their duration                 |
+| getStableState           | getStableState(time_slot, end_time = None)                                            | Average calculation which takes into account the values depending on their duration                 |
+| <...>                    | see [openHAB PersistenceExtensions API](https://www.openhab.org/javadoc/latest/org/openhab/core/persistence/extensions/persistenceextensions) |                                             |
 
 ### class ItemSemantic 
 
@@ -443,7 +443,7 @@ ItemSemantic is a wrapper around [openHAB Semantics](https://www.openhab.org/jav
 
 | Function                 | Usage                                                                                 |
 | ------------------------ | ------------------------------------------------------------------------------------- |
-| <...>                    | see [openHAB Semantics api](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/semantics) |
+| <...>                    | see [openHAB Semantics API](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/semantics) |
 
 ### class Thing 
 
@@ -451,7 +451,7 @@ Thing is a wrapper around [openHAB Thing](https://www.openhab.org/javadoc/latest
 
 | Function                 | Usage                                                                                 |
 | ------------------------ | ------------------------------------------------------------------------------------- |
-| <...>                    | see [openHAB Thing api](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/thing) |
+| <...>                    | see [openHAB Thing API](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/thing) |
 
 ### class Channel 
 
@@ -459,7 +459,7 @@ Channel is a wrapper around [openHAB Channel](https://www.openhab.org/javadoc/la
 
 | Function                 | Usage                                                                                 |
 | ------------------------ | ------------------------------------------------------------------------------------- |
-| <...>                    | see [openHAB Channel api](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/type/channelgrouptype) |
+| <...>                    | see [openHAB Channel API](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/type/channelgrouptype) |
 
 ### class Timer 
 
@@ -469,7 +469,7 @@ Channel is a wrapper around [openHAB Channel](https://www.openhab.org/javadoc/la
 
 ### class Set
 
-This is a helper class which makes it possible to use a python 'set' as an argument for java class method calls
+This is a helper class which makes it possible to use a Python 'set' as an argument for Java class method calls
 
 ## Others
 
@@ -511,7 +511,7 @@ def test():
 Timer.createTimeout(60, test)
 ```
 
-Below is a complex example of 2 sensor values ​​that are expected to be transmitted in a certain time window (e.g. one after the other).
+Below is a complex example of 2 sensor values that are expected to be transmitted in a certain time window (e.g. one after the other).
 
 After the first state change, the timer wait 5 seconds, before it updates the final target value. If the second value arrives before this time frame, the final target value is updated immediately.
 
@@ -556,16 +556,16 @@ Conversion occurs in both directions
 
 #### Exception during helper lib initialisation
 
-There were problems during the deployment of the helper libs. A typical error is an insufficient permission. The folder "conf/automation/python/" must be writeable by openhab.
+There were problems during the deployment of the helper libs. A typical error is an insufficient permission. The folder "conf/automation/python/" must be writeable by openHAB.
 
 #### Failed to inject import wrapper
 
 The reading the python source file "conf/automation/python/lib/openhab/__wrapper__.py" failed.
 
-This could either a permission/owner problem or a problem during deployment of the helper libs. You should check that this file exists and it is readable by openhab. You should also check your logs for a message related to the helper lib deployment by just grep for "helper lib"
+This could either a permission/owner problem or a problem during deployment of the helper libs. You should check that this file exists and it is readable by openHAB. You should also check your logs for a message related to the helper lib deployment by just grep for "helper lib"
 
 ### limitations
 
-- graalby can't handle arguments in constructors of java objects. Means you can't instantiate a javaobject in python with a parameter. https://github.com/oracle/graalpython/issues/367
-- graalpy does not really support python 'set' types as arguments of function calls to java objects https://github.com/oracle/graalpython/issues/260
-  - The reason is that Java is not able to distinguish what is a python list and what is a python set. A workaround is to use the class [Set](#class-set)
+- GraalPy can't handle arguments in constructors of Java objects. Means you can't instantiate a Java object in Python with a parameter. https://github.com/oracle/graalpython/issues/367
+- GraalPy does not really support Python 'set' types as arguments of function calls to Java objects https://github.com/oracle/graalpython/issues/260
+  - The reason is that Java is not able to distinguish what is a Python list and what is a Python set. A workaround is to use the class [Set](#class-set)
