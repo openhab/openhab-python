@@ -6,9 +6,10 @@ This library is included by default in the [openHAB Python3 Scripting Add-on](ht
 
 ## Creating Python Scripts
 
-When this add-on is installed, you can select Python3 as a scripting language when creating a script action within the rule editor of the UI.
+When this add-on is installed, you can select Python 3 as a scripting language when creating a script action within the rule editor of the UI.
 
-Alternatively, you can create scripts in the `automation/python` configuration directory. If you create an empty file called `test.py`, you will see a log line with information similar to:
+Alternatively, you can create scripts in the `automation/python` configuration directory.
+If you create an empty file called `test.py`, you will see a log line with information similar to:
 
 ```text
 ... [INFO ] [ort.loader.AbstractScriptFileWatcher] - (Re-)Loading script '/openhab/conf/automation/python/test.py'
@@ -296,7 +297,8 @@ The type of the event can also be queried via [AbstractEvent.getTopic](https://w
 
 ### module scope
 
-The scope module encapsulates all [default jsr223 objects/presents](https://www.openhab.org/docs/configuration/jsr223.html#default-preset-importpreset-not-required) into a new object. You can use it like below
+The scope module encapsulates all [default jsr223 objects/presents](https://www.openhab.org/docs/configuration/jsr223.html#default-preset-importpreset-not-required) into a new object.
+You can use it like below
 
 ```python
 from scope import * # this makes all jsr223 objects available
@@ -513,7 +515,8 @@ Timer.createTimeout(60, test)
 
 Below is a complex example of 2 sensor values that are expected to be transmitted in a certain time window (e.g. one after the other).
 
-After the first state change, the timer wait 5 seconds, before it updates the final target value. If the second value arrives before this time frame, the final target value is updated immediately.
+After the first state change, the timer wait 5 seconds, before it updates the final target value.
+If the second value arrives before this time frame, the final target value is updated immediately.
 
 ```python
 from openhab import rule, Registry
@@ -552,19 +555,23 @@ Conversion occurs in both directions
 | Set(set)                  | Set           |
 | Item                      | Item          |
 
-### typical log errors
+### Typical log errors
 
 #### Exception during helper lib initialisation
 
-There were problems during the deployment of the helper libs. A typical error is an insufficient permission. The folder "conf/automation/python/" must be writeable by openHAB.
+There were problems during the deployment of the helper libs.
+A typical error is an insufficient permission.
+The folder "conf/automation/python/" must be writeable by openHAB.
 
 #### Failed to inject import wrapper
 
-The reading the python source file "conf/automation/python/lib/openhab/__wrapper__.py" failed.
+The reading the Python source file "conf/automation/python/lib/openhab/__wrapper__.py" failed.
 
-This could either a permission/owner problem or a problem during deployment of the helper libs. You should check that this file exists and it is readable by openHAB. You should also check your logs for a message related to the helper lib deployment by just grep for "helper lib"
+This could either a permission/owner problem or a problem during deployment of the helper libs.
+You should check that this file exists and it is readable by openHAB.
+You should also check your logs for a message related to the helper lib deployment by just grep for "helper lib".
 
-### limitations
+### Limitations
 
 - GraalPy can't handle arguments in constructors of Java objects. Means you can't instantiate a Java object in Python with a parameter. https://github.com/oracle/graalpython/issues/367
 - GraalPy does not really support Python 'set' types as arguments of function calls to Java objects https://github.com/oracle/graalpython/issues/260
