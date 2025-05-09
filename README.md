@@ -67,13 +67,21 @@ Use Python Scripting as script transformation by:
    The script should take one argument `input` and return a value that supports `toString()` or `null`:
 
    ```python
+   "String has " + str(len(input)) + " characters"
+   ```
+
+   or 
+   
+   ```python
    def calc(input):
-       # Do some data transformation here, e.g.
-       return "String has" + data.length + "characters";
+       if input is None:
+           return 0
+
+       return "String has " + str(len(input)) + " characters"
    calc(input)
    ```
 
-2. Using `PY(<scriptname>.py):%s` as Item state transformation.
+   2. Using `PY(<scriptname>.py):%s` as Item state transformation.
 3. Passing parameters is also possible by using a URL like syntax: `PY(<scriptname>.py?arg=value)`.
    Parameters are injected into the script and can be referenced like variables.
 
@@ -361,7 +369,7 @@ print(str(OpenHAB.getVersion()))
 | Ping                     | see [openHAB Ping API](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/ping)        |                                                                          |
 | ScriptExecution          | see [openHAB ScriptExecution API](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/scriptexecution) |                                                           |
 | Semantic                 | see [openHAB Semantic API](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/semantic) |                                                                         |
-| ThingAction              | see [openHAB ThingAction API](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/things) |                                                                        |
+| Things                   | see [openHAB Things API](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/things) |                                                                        |
 | Transformation           | see [openHAB Transformation API](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/transformation) |                                                             |
 | Voice                    | see [openHAB Voice API](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/voice)      |                                                                          |
 | NotificationAction       |                                                                                       | e.g. NotificationAction.sendNotification("test@test.org", "Window is open")                         |
