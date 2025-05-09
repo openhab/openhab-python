@@ -10,10 +10,10 @@ from org.openhab.core.types import Command as Java_Command, State as Java_State
 
 def validateUID(uid):
     if uid is None:
-        uid = uuid.uuid1().hex
+        uid = uuid.uuid4().hex
     else:
         uid = re.sub(r"[^A-Za-z0-9_-]", "_", uid)
-        uid = "{}_{}".format(uid, uuid.uuid1().hex)
+        uid = "{}_{}".format(uid, uuid.uuid4().hex)
     if not re.match("^[A-Za-z0-9]", uid):# in case the first character is still invalid
         uid = "{}_{}".format("jython", uid)
     uid = re.sub(r"__+", "_", uid)
