@@ -85,7 +85,7 @@ Use Python Scripting as script transformation by:
 3. Passing parameters is also possible by using a URL like syntax: `PY(<scriptname>.py?arg=value)`.
    Parameters are injected into the script and can be referenced like variables.
 
-Simple transformations can also be given as an inline script: `PY(|...)`, e.g. `PY(|"String has " + input.length + "characters")`.
+Simple transformations can also be given as an inline script: `PY(|...)`, e.g. `PY(|"String has " + str(len(input)) + "characters")`.
 It should start with the `|` character, quotes within the script may need to be escaped with a backslash `\` when used with another quoted string as in text configurations.
 
 ::: tip Note
