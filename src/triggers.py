@@ -235,18 +235,18 @@ class GenericEventTrigger(BaseTrigger):
     def __init__(self, event_source, event_types, event_topic="*/*", trigger_name=None):
         trigger_name = validateUID(trigger_name)
         self.raw_trigger = Java_TriggerBuilder.create().withId(trigger_name).withTypeUID("core.GenericEventTrigger").withConfiguration(Java_Configuration({
-            "eventTopic": event_topic,
-            "eventSource": event_source,
-            "eventTypes": event_types
+            "topic": event_topic,
+            "source": event_source,
+            "types": event_types
         })).build()
 
 class ItemEventTrigger(BaseTrigger):
     def __init__(self, event_types, item_name=None, trigger_name=None):
         trigger_name = validateUID(trigger_name)
         self.raw_trigger = Java_TriggerBuilder.create().withId(trigger_name).withTypeUID("core.GenericEventTrigger").withConfiguration(Java_Configuration({
-            "eventTopic": "*/items/*",
-            "eventSource": "/items/{}".format(item_name if item_name else ""),
-            "eventTypes": event_types
+            "topic": "*/items/*",
+            "source": "/items/{}".format(item_name if item_name else ""),
+            "types": event_types
         })).build()
 
     first_word = ["item"]
@@ -264,9 +264,9 @@ class ThingEventTrigger(BaseTrigger):
     def __init__(self, event_types, thing_uid=None, trigger_name=None):
         trigger_name = validateUID(trigger_name)
         self.raw_trigger = Java_TriggerBuilder.create().withId(trigger_name).withTypeUID("core.GenericEventTrigger").withConfiguration(Java_Configuration({
-            "eventTopic": "*/things/*",
-            "eventSource": "/things/{}".format(thing_uid if thing_uid else ""),
-            "eventTypes": event_types
+            "topic": "*/things/*",
+            "source": "/things/{}".format(thing_uid if thing_uid else ""),
+            "types": event_types
         })).build()
 
     first_word = ["thing"]
