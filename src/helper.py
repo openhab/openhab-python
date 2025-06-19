@@ -29,6 +29,8 @@ from org.openhab.core.library.types import DecimalType as Java_DecimalType, UpDo
 
 from org.openhab.core.persistence import HistoricItem as Java_HistoricItem
 
+from org.openhab.core.items import ItemNotFoundException
+
 #Java_MetadataKey = java.type("org.openhab.core.items.MetadataKey")
 #Java_Metadata = java.type("org.openhab.core.items.Metadata")
 
@@ -488,10 +490,11 @@ class Registry():
     @staticmethod
     def getItem(item_name):
         if isinstance(item_name, str):
-            item = ITEM_REGISTRY.getItem(item_name)
-            if item is None:
+            try:
+                item = ITEM_REGISTRY.getItem(item_name)
+                return JavaConversionHelper.convertItem(item)
+            except ItemNotFoundException:
                 raise NotInitialisedException("Item {} not found".format(item_name))
-            return JavaConversionHelper.convertItem(item)
         raise Exception("Unsupported parameter type {}".format(type(item_name)))
 
     @staticmethod
