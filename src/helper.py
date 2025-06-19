@@ -70,6 +70,8 @@ EVENT_BUS         = scope.events
 AUTOMATION_MANAGER = RuleSupport.automationManager
 LIFECYCLE_TRACKER = scope.lifecycleTracker
 
+DYNAMIC_ITEM_TAG = "_DYNAMIC_"
+
 # **** LOGGING ****
 Java_LogFactory = java.type("org.slf4j.LoggerFactory")
 LOG_PREFIX = "org.openhab.automation.pythonscripting"
