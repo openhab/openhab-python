@@ -57,6 +57,8 @@ Java_Iterable = java.type("java.lang.Iterable")
 
 METADATA_REGISTRY = getService("org.openhab.core.items.MetadataRegistry")
 
+ITEM_BUILDER_FACTORY = getService("org.openhab.core.items.ItemBuilderFactory")
+
 ITEM_REGISTRY     = scope.itemRegistry
 STATE_REGISTRY    = scope.items
 THING_REGISTRY    = scope.things
@@ -488,33 +490,6 @@ class Registry():
         return Channel(channel)
 
     @staticmethod
-    def getItem(item_name):
-        if isinstance(item_name, str):
-            try:
-                item = ITEM_REGISTRY.getItem(item_name)
-                return JavaConversionHelper.convertItem(item)
-            except ItemNotFoundException:
-                raise NotInitialisedException("Item {} not found".format(item_name))
-        raise Exception("Unsupported parameter type {}".format(type(item_name)))
-
-    @staticmethod
-    def resolveItem(item_or_item_name):
-        if isinstance(item_or_item_name, Item):
-            return item_or_item_name
-        return Registry.getItem(item_or_item_name)
-
-    @staticmethod
-    def getItemState(item_name, default = None):
-        if isinstance(item_name, str):
-            state = STATE_REGISTRY.get(item_name)
-            if state is None:
-                raise NotInitialisedException("Item state for {} not found".format(item_name))
-            if default is not None and java.instanceof(state, Java_UnDefType):
-                state = default
-            return JavaConversionHelper.convertState(state)
-        raise Exception("Unsupported parameter type {}".format(type(item_name)))
-
-    @staticmethod
     def getItemMetadata(item_or_item_name, namespace):
         item_name = Registry._getItemName(item_or_item_name)
         return METADATA_REGISTRY.get(Java_MetadataKey(namespace, item_name))
@@ -535,6 +510,82 @@ class Registry():
             return None
         else:
             return METADATA_REGISTRY.remove(Java_MetadataKey(namespace, item_name))
+
+    @staticmethod
+    def getItemState(item_name, default = None):
+        if isinstance(item_name, str):
+            state = STATE_REGISTRY.get(item_name)
+            if state is None:
+                raise NotInitialisedException("Item state for {} not found".format(item_name))
+            if default is not None and java.instanceof(state, Java_UnDefType):
+                state = default
+            return JavaConversionHelper.convertState(state)
+        raise Exception("Unsupported parameter type {}".format(type(item_name)))
+
+    @staticmethod
+    def getItem(item_name):
+        if isinstance(item_name, str):
+            try:
+                item = ITEM_REGISTRY.getItem(item_name)
+                return JavaConversionHelper.convertItem(item)
+            except ItemNotFoundException:
+                raise NotInitialisedException("Item {} not found".format(item_name))
+        raise Exception("Unsupported parameter type {}".format(type(item_name)))
+
+    @staticmethod
+    def resolveItem(item_or_item_name):
+        if isinstance(item_or_item_name, Item):
+            return item_or_item_name
+        return Registry.getItem(item_or_item_name)
+
+    @staticmethod
+    def addItem(item_config):
+        item = Registry._createItem(item_config)
+        ITEM_REGISTRY.add(item.raw_item)
+
+        return Registry.getItem(item_config['name'])
+
+    @staticmethod
+    def safeItemName(s):
+        # Remove quotes and replace non-alphanumeric with underscores
+        return ''.join([c if c.isalnum() else '_' for c in s.replace('"', '').replace("'", '')])
+
+    @staticmethod
+    def _createItem(item_config):
+        if 'name' not in item_config or 'type' not in item_config:
+            raise Exception('item_config.name or item_config.type not set')
+
+        item_config['name'] = Registry.safeItemName(item_config['name'])
+
+        base_item = None
+        if item_config['type'] == 'Group' and 'giBaseType' in item_config:
+            base_item = ITEM_BUILDER_FACTORY.newItemBuilder(item_config['giBaseType'], item_config['name'] + '_baseItem').build()
+        if item_config['type'] != 'Group':
+            item_config['groupFunction'] = None
+
+        if 'tags' not in item_config:
+            item_config['tags'] = []
+        item_config['tags'].append(DYNAMIC_ITEM_TAG)
+
+        try:
+            builder = ITEM_BUILDER_FACTORY.newItemBuilder(item_config['type'], item_config['name']) \
+                .withCategory(item_config.get('category')) \
+                .withLabel(item_config.get('label')) \
+                .withTags(Set(item_config['tags']))
+
+            if 'groups' in item_config:
+                builder = builder.withGroups(item_config['groups'])
+
+            if base_item is not None:
+                builder = builder.withBaseItem(base_item)
+            if item_config.get('groupFunction') is not None:
+                builder = builder.withGroupFunction(item_config['groupFunction'])
+
+            item = builder.build()
+            return Item(item)
+        except Exception as e:
+            logger.error('Failed to create Item: {}'.format(e))
+            raise
 
     @staticmethod
     def _getItemName(item_or_item_name):
