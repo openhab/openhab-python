@@ -147,7 +147,7 @@ class rule():
             base_rule_obj.setDescription(proxy.description)
 
         if proxy.tags is not None:
-            base_rule_obj.setTags(Set(proxy.tags))
+            base_rule_obj.setTags(proxy.tags)
 
         if len(raw_triggers) == 0:
             clazz_or_function.logger.warn("Rule '{}' has no triggers".format(name))
@@ -573,7 +573,7 @@ class Registry():
             builder = ITEM_BUILDER_FACTORY.newItemBuilder(item_config['type'], item_config['name']) \
                 .withCategory(item_config.get('category')) \
                 .withLabel(item_config.get('label')) \
-                .withTags(Set(item_config['tags']))
+                .withTags(item_config['tags'])
 
             if 'groups' in item_config:
                 builder = builder.withGroups(item_config['groups'])
@@ -597,14 +597,6 @@ class Registry():
             return item_or_item_name.getName()
         raise Exception("Unsupported parameter type {}".format(type(item_or_item_name)))
 
-
-# helper class to force graalpy to force a specific type cast. e.g. convert a list to to a java.util.Set instead of java.util.List
-class Set(list):
-    def __init__(self, values):
-        list.__init__(self, values)
-
-    def isSetType(self):
-        return True
 
 # Timer will not work in transformations scripts, because LIFECYLE_TRACKER cleanup will never run successfully
 class Timer(threading.Timer):
