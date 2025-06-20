@@ -81,7 +81,7 @@ Use Python Scripting as script transformation by:
    calc(input)
    ```
 
-   2. Using `PY(<scriptname>.py):%s` as Item state transformation.
+2. Using `PY(<scriptname>.py):%s` as Item state transformation.
 3. Passing parameters is also possible by using a URL like syntax: `PY(<scriptname>.py?arg=value)`.
    Parameters are injected into the script and can be referenced like variables.
 
@@ -554,15 +554,14 @@ class UpdateInfo:
 
 ### Python <=> Java conversion
 
-Conversion occurs in both directions
+In addition to standard [value type mappings](https://www.graalvm.org/python/docs/#mapping-types-between-python-and-other-languages), the following type mappings are available.
 
 | Python class              | Java class    |
 | ------------------------- | ------------- |
 | datetime with timezone    | ZonedDateTime |
 | datetime without timezone | Instant       |
 | timedelta                 | Duration      |
-| list                      | Collection    |
-| Set(set)                  | Set           |
+| list                      | Set           |
 | Item                      | Item          |
 
 ### Typical log errors
@@ -584,5 +583,3 @@ You should also check your logs for a message related to the helper lib deployme
 ### Limitations
 
 - GraalPy can't handle arguments in constructors of Java objects. Means you can't instantiate a Java object in Python with a parameter. https://github.com/oracle/graalpython/issues/367
-- GraalPy does not really support Python 'set' types as arguments of function calls to Java objects https://github.com/oracle/graalpython/issues/260
-  - The reason is that Java is not able to distinguish what is a Python list and what is a Python set. A workaround is to use the class [Set](#class-set)
