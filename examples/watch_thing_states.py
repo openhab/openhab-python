@@ -5,26 +5,23 @@ from openhab.helper import NotInitialisedException
 from scope import ON, OFF
 
 def setThingItemStatus(thinguid, status):
-    thing = Registry.get(thinguid)
-    if thing:
-        logger.info("Thing {} is now {}".format(thing.getLabel(), status))
+    thing = Registry.getThing(thinguid)
+    logger.info("Thing {} is now {}".format(thing.getLabel(), status))
 
-        item_name = Registry.safeItemName(thing.getLabel()) + "_status"
-        try:
-            logger.info("Looking for Item {}".format(item_name))
-            item = Registry.getItem(item_name)
-        except NotInitialisedException as e:
-            logger.info("Creating Item {} not found in registry".format(item_name))
-            itemConfig = {
-                "name": item_name,
-                "type": "String",
-                "label": "Status of {}".format(thing.getLabel()),
-                "groups": ['Things_Status']
-            }
-            item = Registry.addItem(itemConfig)
-        item.sendCommand(status)
-    else:
-        logger.warn("Thing with UID {} not found in registry".format(thinguid))
+    item_name = Registry.safeItemName(thing.getLabel()) + "_status"
+    try:
+        logger.info("Looking for Item {}".format(item_name))
+        item = Registry.getItem(item_name)
+    except NotInitialisedException as e:
+        logger.info("Creating Item {} not found in registry".format(item_name))
+        itemConfig = {
+            "name": item_name,
+            "type": "String",
+            "label": "Status of {}".format(thing.getLabel()),
+            "groups": ['Things_Status']
+        }
+        item = Registry.addItem(itemConfig)
+    item.sendCommand(status)
 
 @rule("Set Things Status")
 @when("system started")
