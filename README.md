@@ -419,7 +419,7 @@ print(str(OpenHAB.getVersion()))
 | getItem                  | getItem(item_name)                                                                    | [Item](#class-item) or [GroupItem](#class-groupitem)                                                |
 | resolveItem              | resolveItem(item_or_item_name)                                                        | [Item](#class-item) or [GroupItem](#class-groupitem)                                                |
 | addItem                  | addItem(item_config)                                                                  | [Item](#class-item) or [GroupItem](#class-groupitem)                                                |
-| safeItemName             | safeItemName(item_name)                                                               |                                                 |
+| safeItemName             | safeItemName(item_name)                                                               | Escaped string                                                                                      |
 
 
 ### class Item 
