@@ -478,6 +478,10 @@ class Channel():
 
 class Registry():
     @staticmethod
+    def getThings():
+        return THING_REGISTRY.getAll()
+
+    @staticmethod
     def getThing(uid):
         thing = THING_REGISTRY.get(Java_ThingUID(uid))
         if thing is None:

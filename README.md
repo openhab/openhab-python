@@ -409,6 +409,7 @@ print(str(OpenHAB.getVersion()))
 
 | Function                 | Usage                                                                                 | Return Value                                                                                        |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| getThings                | getThings()                                                                           | Array of [Thing](#class-thing)                                                                      |
 | getThing                 | getThing(uid)                                                                         | [Thing](#class-thing)                                                                               |
 | getChannel               | getChannel(uid)                                                                       | [Channel](#class-channel)                                                                           |
 | getItemMetadata          | getItemMetadata(item_or_item_name, namespace)                                         | [openHAB Metadata](https://www.openhab.org/javadoc/latest/org/openhab/core/items/metadata)          |
