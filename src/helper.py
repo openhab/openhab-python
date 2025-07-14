@@ -11,7 +11,7 @@ from inspect import isfunction
 
 import scope
 
-from scope import RuleSupport#, RuleSimple
+from scope import RuleSupport, osgi#, RuleSimple
 
 from openhab.jsr223 import TopCallStackFrame
 from openhab.services import getService
@@ -89,6 +89,11 @@ logger = Java_LogFactory.getLogger( LOG_PREFIX )
 class NotInitialisedException(Exception):
     pass
 
+def versiontuple(v):
+    return tuple(map(int, (v.split("."))))
+
+BUNDLE_VERSION = versiontuple(osgi.bundleContext.getBundle().getVersion().toString())
+
 class rule():
     def __init__(self, name=None, description=None, tags=None, triggers=None, conditions=None, profile=None):
         self.name = name
@@ -159,10 +164,15 @@ class rule():
 
             rule = AUTOMATION_MANAGER.addRule(base_rule_obj)
 
-            actionConfiguration = rule.getActions().get(0).getConfiguration()
-            actionConfiguration.put('type', 'application/x-python3')
-            if '__file__' in TopCallStackFrame:
-                actionConfiguration.put('script', f"# text based rule in file: {TopCallStackFrame['__file__']}")
+            if BUNDLE_VERSION < versiontuple("5.0.0"):
+                actionConfiguration = rule.getActions().get(0).getConfiguration()
+                actionConfiguration.put('type', 'application/x-python3')
+                if '__file__' in TopCallStackFrame:
+                    actionConfiguration.put('script', f"# text based rule in file: {TopCallStackFrame['__file__']}")
+            else:
+                rule.getConfiguration().put('sourceType', 'application/x-python3')
+                if '__file__' in TopCallStackFrame:
+                    rule.getConfiguration().put('source', f"# text based rule in file: {TopCallStackFrame['__file__']}")
 
             clazz_or_function.logger.info("Rule '{}' initialised".format(name))
 
