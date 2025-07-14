@@ -246,7 +246,9 @@ class JavaConversionHelper():
 
     @staticmethod
     def convertZonedDateTime(zoned_date_time):
-        return datetime.fromisoformat(zoned_date_time.toString().split("[")[0])
+        if zoned_date_time != None:
+            return datetime.fromisoformat(zoned_date_time.toString().split("[")[0])
+        return None
 
     @staticmethod
     def convertInstant(instant):
