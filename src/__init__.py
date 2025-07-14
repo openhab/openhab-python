@@ -1,3 +1,3 @@
-__version__ = "0.1.26"
+__version__ = "0.0.0"
 
 from openhab.helper import rule, logger, Registry, Timer

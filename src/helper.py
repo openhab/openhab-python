@@ -395,6 +395,12 @@ class Item():
     def getState(self):
         return JavaConversionHelper.convertState(self.raw_item.getState())
 
+    def getLastStateChange(self):
+        return JavaConversionHelper.convertZonedDateTime(self.raw_item.getLastStateChange())
+
+    def getLastStateUpdate(self):
+        return JavaConversionHelper.convertZonedDateTime(self.raw_item.getLastStateUpdate())
+
     def getPersistence(self, service_id = None):
         return ItemPersistence(self, service_id)
 
