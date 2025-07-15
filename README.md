@@ -2,7 +2,7 @@
 
 This library is a Python library that supports access to automation in openHAB. It provides convenient access to common core openHAB functions that make the full range of Java APIs easily accessible and usable. It does not try to encapsulate every conceivable aspect of the OpenHAB API. Instead, it tries to simplify access to Java APIs and make it more intuitive, following typical python standards.
 
-This library is included by default in the [openHAB Python3 Scripting Add-on](https://community.openhab.org/t/python3-scripting/161945/1).
+This library is included by default in the [openHAB Python Scripting Add-on](https://next.openhab.org/addons/automation/pythonscripting/).
 
 ## Creating Python Scripts
 
