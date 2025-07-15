@@ -238,30 +238,27 @@ class rule():
 
 class JavaConversionHelper():
     @staticmethod
-    def convertItem(item):
-        if java.instanceof(item, Java_GroupItem):
-            return GroupItem(item)
-        return Item(item)
+    def _convertZonedDateTime(zoned_date_time):
+        return datetime.fromisoformat(zoned_date_time.toString().split("[")[0])
 
     @staticmethod
     def convertState(state):
         if java.instanceof(state, Java_DateTimeType):
-            return JavaConversionHelper.convertZonedDateTime(state.getZonedDateTime())
+            return JavaConversionHelper._convertZonedDateTime(state.getZonedDateTime())
         #elif state.getClass().getName() == 'org.openhab.core.library.types.QuantityType':
         #    return QuantityType(state)
         return state
 
     @staticmethod
-    def convertZonedDateTime(zoned_date_time):
-        return datetime.fromisoformat(zoned_date_time.toString().split("[")[0])
-
-    @staticmethod
     def convert(value):
+        if java.instanceof(value, Java_Item):
+            return Item(value)
+
         if java.instanceof(value, Java_State):
             return JavaConversionHelper.convertState(value)
 
         if java.instanceof(value, Java_ZonedDateTime):
-            return JavaConversionHelper.convertZonedDateTime(value)
+            return JavaConversionHelper._convertZonedDateTime(value)
 
         if java.instanceof(value, Java_Instant):
             return datetime.fromisoformat(value.toString())
@@ -327,36 +324,20 @@ class ItemPersistence():
         value, _, _ = self.getStableMinMaxState(time_slot, end_time)
         return value
 
-    def _callWrapper(self, func, args):
-        args = tuple([self.item.raw_item]) + args
-        if self.service_id is not None:
-            args = args + tuple([self.service_id])
-        result = func(*args)
-
-        return JavaConversionHelper.convert(result)
-
     def __getattr__(self, name):
         attr = getattr(Java_PersistenceExtensions, name)
         if callable(attr):
-            return lambda *args, **kwargs: self._callWrapper( attr, args )
+            return lambda *args, **kwargs: JavaConversionHelper.convert( attr(*(tuple([self.item.raw_item]) + args + tuple([] if self.service_id is None else [self.service_id]) )) )
         return attr
 
 class ItemSemantic():
     def __init__(self, item):
         self.item = item
 
-    def getEquipment(self):
-        return JavaConversionHelper.convertItem(self.self.item.raw_item.getEquipment())
-
-    def _callWrapper(self, func, args):
-        args = tuple([self.item.raw_item]) + args
-        result = func(*args)
-        return result
-
     def __getattr__(self, name):
         attr = getattr(Java_Semantics, name)
         if callable(attr):
-            return lambda *args, **kwargs: self._callWrapper( attr, args )
+            return lambda *args, **kwargs: JavaConversionHelper.convert( attr(*(tuple([self.item.raw_item]) + args)) )
         return attr
 
 class HistoricItem():
@@ -366,7 +347,7 @@ class HistoricItem():
     def __getattr__(self, name):
         attr = getattr(self.raw_historic_item, name)
         if callable(attr):
-            return lambda *args, **kwargs: JavaConversionHelper.convert(attr(*args))
+            return lambda *args, **kwargs: JavaConversionHelper.convert( attr(*args) )
         return attr
 
 class Item():
@@ -405,7 +386,7 @@ class Item():
     def __getattr__(self, name):
         attr = getattr(self.raw_item, name)
         if callable(attr):
-            return lambda *args, **kwargs: JavaConversionHelper.convert(attr(*args))
+            return lambda *args, **kwargs: JavaConversionHelper.convert( attr(*args) )
         return attr
 
     #def __getattr__(self, name):
@@ -455,19 +436,6 @@ class Item():
 
             return current_state != new_state
         return True
-
-    @staticmethod
-    def _wrapItem(item):
-        if java.instanceof(item, Java_GroupItem):
-            return GroupItem(item)
-        return Item(item)
-
-class GroupItem(Item):
-    def getAllMembers(self):
-        return [JavaConversionHelper.convertItem(raw_item) for raw_item in self.raw_item.getAllMembers()]
-
-    def getMembers(self):
-        return [JavaConversionHelper.convertItem(raw_item) for raw_item in self.raw_item.getMembers()]
 
 class Thing():
     def __init__(self, raw_item):
@@ -539,8 +507,7 @@ class Registry():
     def getItem(item_name):
         if isinstance(item_name, str):
             try:
-                item = ITEM_REGISTRY.getItem(item_name)
-                return JavaConversionHelper.convertItem(item)
+                return Item(ITEM_REGISTRY.getItem(item_name))
             except ItemNotFoundException:
                 raise NotInitialisedException("Item {} not found".format(item_name))
         raise Exception("Unsupported parameter type {}".format(type(item_name)))

@@ -416,11 +416,10 @@ print(str(OpenHAB.getVersion()))
 | setItemMetadata          | setItemMetadata(item_or_item_name, namespace, value, configuration=None)              | [openHAB Metadata](https://www.openhab.org/javadoc/latest/org/openhab/core/items/metadata)          |
 | removeItemMetadata       | removeItemMetadata(item_or_item_name, namespace = None)                               | [openHAB Metadata](https://www.openhab.org/javadoc/latest/org/openhab/core/items/metadata)          |
 | getItemState             | getItemState(item_name, default = None)                                               | [openHAB State](https://www.openhab.org/javadoc/latest/org/openhab/core/types/state)                |
-| getItem                  | getItem(item_name)                                                                    | [Item](#class-item) or [GroupItem](#class-groupitem)                                                |
-| resolveItem              | resolveItem(item_or_item_name)                                                        | [Item](#class-item) or [GroupItem](#class-groupitem)                                                |
-| addItem                  | addItem(item_config)                                                                  | [Item](#class-item) or [GroupItem](#class-groupitem)                                                |
+| getItem                  | getItem(item_name)                                                                    | [Item](#class-item)                                                                                 |
+| resolveItem              | resolveItem(item_or_item_name)                                                        | [Item](#class-item)                                                                                 |
+| addItem                  | addItem(item_config)                                                                  | [Item](#class-item)                                                                                 |
 | safeItemName             | safeItemName(item_name)                                                               | Escaped string                                                                                      |
-
 
 ### class Item 
 
@@ -435,10 +434,6 @@ Item is a wrapper around [openHAB Item](https://www.openhab.org/javadoc/latest/o
 | getPersistence           | getPersistence(service_id = None)                                                     | [ItemPersistence](#class-itempersistence)                                                           |
 | getSemantic              | getSemantic()                                                                         | [ItemSemantic](#class-itemsemantic)                                                                 |
 | <...>                    | see [openHAB Item API](https://www.openhab.org/javadoc/latest/org/openhab/core/items/item) |                                                                                                |
-
-### class GroupItem 
-
-GroupItem is an extended [Item](#class-item) which wraps results from getAllMembers & getMembers into [Items](#class-item)
 
 ### class ItemPersistence 
 
