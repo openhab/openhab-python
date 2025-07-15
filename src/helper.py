@@ -47,6 +47,7 @@ from org.openhab.core.items import ItemNotFoundException
 #Java_HistoricItem = java.type("org.openhab.core.persistence.HistoricItem")
 #Java_DateTimeType = java.type("org.openhab.core.library.types.DateTimeType")
 Java_ZonedDateTime = java.type("java.time.ZonedDateTime")
+Java_Instant = java.type("java.time.Instant")
 Java_Iterable = java.type("java.lang.Iterable")
 
 #Java_DecimalType = java.type("org.openhab.core.library.types.DecimalType")
@@ -243,10 +244,6 @@ class JavaConversionHelper():
         return Item(item)
 
     @staticmethod
-    def convertHistoricItem(historic_item):
-        return HistoricItem(historic_item)
-
-    @staticmethod
     def convertState(state):
         if java.instanceof(state, Java_DateTimeType):
             return JavaConversionHelper.convertZonedDateTime(state.getZonedDateTime())
@@ -256,13 +253,29 @@ class JavaConversionHelper():
 
     @staticmethod
     def convertZonedDateTime(zoned_date_time):
-        if zoned_date_time != None:
-            return datetime.fromisoformat(zoned_date_time.toString().split("[")[0])
-        return None
+        return datetime.fromisoformat(zoned_date_time.toString().split("[")[0])
 
     @staticmethod
-    def convertInstant(instant):
-        return datetime.fromisoformat(instant.toString())
+    def convert(value):
+        if java.instanceof(value, Java_State):
+            return JavaConversionHelper.convertState(value)
+
+        if java.instanceof(value, Java_ZonedDateTime):
+            return JavaConversionHelper.convertZonedDateTime(value)
+
+        if java.instanceof(value, Java_Instant):
+            return datetime.fromisoformat(value.toString())
+
+        if java.instanceof(value, Java_HistoricItem):
+            return HistoricItem(value)
+
+        if java.instanceof(value, Java_Iterable):
+            _values = []
+            for _value in value:
+                _values.append(JavaConversionHelper.convert(_value))
+            return _values
+
+        return value
 
 class ItemPersistence():
     def __init__(self, item, service_id = None):
@@ -320,22 +333,7 @@ class ItemPersistence():
             args = args + tuple([self.service_id])
         result = func(*args)
 
-        if java.instanceof(result, Java_ZonedDateTime):
-            return JavaConversionHelper.convertZonedDateTime(result)
-
-        if java.instanceof(result, Java_State):
-            return JavaConversionHelper.convertState(result)
-
-        if java.instanceof(result, Java_HistoricItem):
-            return JavaConversionHelper.convertHistoricItem(result)
-
-        if java.instanceof(result, Java_Iterable):
-            _result = []
-            for item in result:
-                result.append(JavaConversionHelper.convertHistoricItem(item))
-            return _result
-
-        return result
+        return JavaConversionHelper.convert(result)
 
     def __getattr__(self, name):
         attr = getattr(Java_PersistenceExtensions, name)
@@ -365,17 +363,11 @@ class HistoricItem():
     def __init__(self, raw_historic_item):
         self.raw_historic_item = raw_historic_item
 
-    def getInstant(self):
-        return JavaConversionHelper.convertInstant(self.raw_historic_item.getInstant())
-
-    def getTimestamp(self):
-        return JavaConversionHelper.convertZonedDateTime(self.raw_historic_item.getTimestamp())
-
-    def getState(self):
-        return JavaConversionHelper.convertState(self.raw_historic_item.getState())
-
     def __getattr__(self, name):
-        return getattr(self.raw_historic_item, name)
+        attr = getattr(self.raw_historic_item, name)
+        if callable(attr):
+            return lambda *args, **kwargs: JavaConversionHelper.convert(attr(*args))
+        return attr
 
 class Item():
     def __init__(self, raw_item):
@@ -404,15 +396,6 @@ class Item():
 
         return True
 
-    def getState(self):
-        return JavaConversionHelper.convertState(self.raw_item.getState())
-
-    def getLastStateChange(self):
-        return JavaConversionHelper.convertZonedDateTime(self.raw_item.getLastStateChange())
-
-    def getLastStateUpdate(self):
-        return JavaConversionHelper.convertZonedDateTime(self.raw_item.getLastStateUpdate())
-
     def getPersistence(self, service_id = None):
         return ItemPersistence(self, service_id)
 
@@ -420,7 +403,13 @@ class Item():
         return ItemSemantic(self)
 
     def __getattr__(self, name):
-        return getattr(self.raw_item, name)
+        attr = getattr(self.raw_item, name)
+        if callable(attr):
+            return lambda *args, **kwargs: JavaConversionHelper.convert(attr(*args))
+        return attr
+
+    #def __getattr__(self, name):
+    #    return getattr(self.raw_item, name)
 
     @staticmethod
     # Insight came from openhab-js. Helper function to convert a JS type to a primitive type accepted by openHAB Core, which often is a string representation of the type.
