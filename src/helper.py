@@ -389,9 +389,6 @@ class Item():
             return lambda *args, **kwargs: JavaConversionHelper.convert( attr(*args) )
         return attr
 
-    #def __getattr__(self, name):
-    #    return getattr(self.raw_item, name)
-
     @staticmethod
     # Insight came from openhab-js. Helper function to convert a JS type to a primitive type accepted by openHAB Core, which often is a string representation of the type.
     #
