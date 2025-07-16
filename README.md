@@ -586,9 +586,10 @@ In addition to standard [value type mappings](https://www.graalvm.org/python/doc
 
 | Python class              | Java class    |
 | ------------------------- | ------------- |
-| datetime with timezone    | ZonedDateTime |
-| datetime without timezone | Instant       |
+| datetime                  | ZonedDateTime |
+| datetime                  | Instant       |
 | timedelta                 | Duration      |
+| list                      | List          |
 | list                      | Set           |
 | Item                      | Item          |
 
