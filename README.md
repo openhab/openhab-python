@@ -151,10 +151,10 @@ logger.info(info.toString());
 from openhab import logger, Registry
 from datetime import datetime
 
-historicItem = Registry.getItem("Item1").getPersistence().persistedState( datetime.now().astimezone() )
+historicItem = Registry.getItem("Item1").getPersistence().persistedState( datetime.now() )
 logger.info( historicItem.getState().toString() );
 
-historicItem = Registry.getItem("Item2").getPersistence("jdbc").persistedState( datetime.now().astimezone() )
+historicItem = Registry.getItem("Item2").getPersistence("jdbc").persistedState( datetime.now() )
 logger.info( historicItem.getState().toString() );
 ```
 
@@ -247,6 +247,9 @@ The type of the event can also be queried via [AbstractEvent.getTopic](https://w
 ### decorator @when
 
 ```python
+
+from openhab.triggers import when
+
 @when("Item Test_String_1 changed from 'old test string' to 'new test string'")
 @when("Item gTest_Contact_Sensors changed")
 @when("Member of gTest_Contact_Sensors changed from ON to OFF")
@@ -288,6 +291,8 @@ The type of the event can also be queried via [AbstractEvent.getTopic](https://w
 ### decorator @onlyif
 
 ```python
+from openhab.triggers import onlyif
+
 @onlyif("Item Test_Switch_2 equals ON")
 @onlyif("Today is a holiday")
 @onlyif("It's not a holiday")
@@ -348,13 +353,26 @@ print(str(OpenHAB.getVersion()))
 
 ### module openhab
 
+The module `openhab` is a forward to the sub_module `openhab.helper` and makes public useable modules available. e.g.
+
+```python
+from openhab import Registry
+```
+
+can also be reewritten as
+
+```python
+from openhab.helper import Registry
+```
+
+but you should always use the short variant. Inside the `openhab.helper` sub_module are additional classes available like [Item](#class-item), [Thing](#class-thing) or [Channel](#class-channel). But there is no need to import them directly, because they are only useful as a result of function calls of the [Registry](#class-registry) class.
+
 | Class                    | Usage                                                                                 | Description                                                                                         |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
 | rule                     | @rule( name=None, description=None, tags=None, triggers=None, conditions=None, profile=None) | [Rule decorator](#decorator-rule) to wrap a custom class into a rule                         |
 | logger                   | logger.info, logger.warn ...                                                          | Logger object with prefix 'org.automation.pythonscripting.{filename}'                               |
-| Registry                 | see [Registry class](#class-registry)                                                 | Static Registry class used to get items, things or channels                                         |
-| Timer                    | see [Timer class](#class-timer)                                                       | Static Timer class to create, start and stop timers                                                 |
-| Set                      | see [Set class](#class-set)                                                           | Set object                                                                                          |
+| Registry                 | see [Registry](#class-registry) class                                                 | Static Registry class used to get items, things or channels                                         |
+| Timer                    | see [Timer](#class-timer) class                                                       | Static Timer class to create, start and stop timers                                                 |
 
 ### module openhab.actions
 
@@ -407,6 +425,10 @@ print(str(OpenHAB.getVersion()))
 
 ### class Registry 
 
+```python
+from openhab import Registry
+```
+
 | Function                 | Usage                                                                                 | Return Value                                                                                        |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
 | getThings                | getThings()                                                                           | Array of [Thing](#class-thing)                                                                      |
@@ -425,6 +447,8 @@ print(str(OpenHAB.getVersion()))
 
 Item is a wrapper around [openHAB Item](https://www.openhab.org/javadoc/latest/org/openhab/core/items/item) with additional functionality.
 
+There is no need to import this class directly. It is returned as a result of function calls of the [Registry](#class-registry) class.
+
 | Function                 | Usage                                                                                 | Return Value                                                                                        |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
 | postUpdate               | postUpdate(state)                                                                     |                                                                                                     |
@@ -439,6 +463,8 @@ Item is a wrapper around [openHAB Item](https://www.openhab.org/javadoc/latest/o
 
 ItemPersistence is a wrapper around [openHAB PersistenceExtensions](https://www.openhab.org/javadoc/latest/org/openhab/core/persistence/extensions/persistenceextensions). The parameters 'item' and 'serviceId', as part of the Wrapped Java API, are not needed, because they are inserted automatically.
 
+There is no need to import this class directly. It is returned as a result of the function call [Item](#class-item).getPersistence().
+
 | Function                 | Usage                                                                                 | Description                                                                                         |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
 | getStableMinMaxState     | getStableMinMaxState(time_slot, end_time = None)                                      | Average calculation which takes into account the values depending on their duration                 |
@@ -449,6 +475,8 @@ ItemPersistence is a wrapper around [openHAB PersistenceExtensions](https://www.
 
 ItemSemantic is a wrapper around [openHAB Semantics](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/semantics). The parameters 'item', as part of the Wrapped Java API, is not needed because it is inserted automatically.
 
+There is no need to import this class directly. It is returned as a result of the function call [Item](#class-item).getSemantic().
+
 | Function                 | Usage                                                                                 |
 | ------------------------ | ------------------------------------------------------------------------------------- |
 | <...>                    | see [openHAB Semantics API](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/semantics) |
@@ -456,6 +484,8 @@ ItemSemantic is a wrapper around [openHAB Semantics](https://www.openhab.org/jav
 ### class Thing 
 
 Thing is a wrapper around [openHAB Thing](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/thing). 
+
+There is no need to import this class directly. It is returned as a result of function calls of the [Registry](#class-registry) class.
 
 | Function                 | Usage                                                                                 |
 | ------------------------ | ------------------------------------------------------------------------------------- |
@@ -465,19 +495,21 @@ Thing is a wrapper around [openHAB Thing](https://www.openhab.org/javadoc/latest
 
 Channel is a wrapper around [openHAB Channel](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/type/channelgrouptype). 
 
+There is no need to import this class directly. It is returned as a result of function calls of the [Registry](#class-registry) class.
+
 | Function                 | Usage                                                                                 |
 | ------------------------ | ------------------------------------------------------------------------------------- |
 | <...>                    | see [openHAB Channel API](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/type/channelgrouptype) |
 
 ### class Timer 
 
+```python
+from openhab import Timer
+```
+
 | Function                 | Usage                                                                                 | Description                                                                                         |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
 | createTimeout            | createTimeout(duration, callback, args=[], kwargs={}, old_timer = None, max_count = 0 ) | Create a timer that will run callback with arguments args and keyword arguments kwargs, after duration seconds have passed. If old_timer from e.g previous call is provided, it will be stopped if not already triggered. If max_count together with old_timer is provided, then 'max_count' times the old timer will be stopped and recreated, before the callback will be triggered immediately |
-
-### class Set
-
-This is a helper class which makes it possible to use a Python 'set' as an argument for Java class method calls
 
 ## Others
 
