@@ -93,7 +93,7 @@ class NotInitialisedException(Exception):
 def versiontuple(v):
     return tuple(map(int, (v.split("."))))
 
-BUNDLE_VERSION = versiontuple(osgi.bundleContext.getBundle().getVersion().toString())
+BUNDLE_VERSION = versiontuple(".".join(osgi.bundleContext.getBundle().getVersion().toString().split(".")[:3]))
 
 class rule():
     def __init__(self, name=None, description=None, tags=None, triggers=None, conditions=None, profile=None):
