@@ -645,6 +645,10 @@ This could either a permission/owner problem or a problem during deployment of t
 You should check that this file exists and it is readable by openHAB.
 You should also check your logs for a message related to the helper lib deployment by just grep for "helper lib".
 
+#### Can't installing pip modules. VEnv not enabled.
+
+Your VEnv setup is not initialized or detected. Please confirm the correct setup, by following the steps about [Enabling VEnv](#enabling-venv)
+
 ### Limitations
 
 - GraalPy can't handle arguments in constructors of Java objects. Means you can't instantiate a Java object in Python with a parameter. https://github.com/oracle/graalpython/issues/367
