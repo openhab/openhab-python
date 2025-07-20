@@ -649,6 +649,14 @@ You should also check your logs for a message related to the helper lib deployme
 
 Your VEnv setup is not initialized or detected. Please confirm the correct setup, by following the steps about [Enabling VEnv](#enabling-venv)
 
+#### User timezone 'XYZ' is different than openhab regional timezone
+
+This means that your configuration EXTRA_JAVA_OPTS="-Duser.timezone=XYZ" is different then the one, configured in openhab regional settings.
+
+e.g. in openHABian this can be changed in /etc/default/openhab
+
+or for containers, this can be provided as a additional environment variable.
+
 ### Limitations
 
 - GraalPy can't handle arguments in constructors of Java objects. Means you can't instantiate a Java object in Python with a parameter. https://github.com/oracle/graalpython/issues/367
