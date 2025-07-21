@@ -22,9 +22,9 @@ enable debug logging for the automation functionality:
 log:set DEBUG org.openhab.automation.pythonscripting
 ```
 
-### Scripting Basics
+### Rules
 
-Lets start with a simple script
+Lets start with a simple rule
 
 ```python
 from openhab import rule
