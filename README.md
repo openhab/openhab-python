@@ -172,7 +172,7 @@ Registry.getItem("Item1").sendCommand(ON)
 
 There are 3 ways of logging.
 
-1. using normal print statements. In this case they are redirected to the default openHAB logfile and marked with log level INFO or ERROR
+1. Normal print statements, are redirected to the default openHAB logfile, prefixed with "org.openhab.automation.pythonscripting" and marked with log level INFO or ERROR
 
 ```python
 import sys
@@ -183,7 +183,7 @@ print("error message", file=sys.stderr)
 
 ```
 
-2. using the logging module. Here you get a logging object, already initialized with the prefix "org.openhab.automation.pythonscripting"
+2. Using the logging module behaves like normal print statements and are prefixed with "org.openhab.automation.pythonscripting" and marked with log level INFO, ERROR, WARN ...
 
 ```python
 from openhab import logging
@@ -193,7 +193,7 @@ logging.info("info message")
 logging.error("error message")
 ```
 
-3. using the rule based logging module. Here you get a logging object, already initialized with the prefix "org.openhab.automation.pythonscripting.<RuleClassName>"
+3. The rule based logging module, is initialized with the prefix "org.openhab.automation.pythonscripting.\<RuleClassName\>"
 
 ```python
 from openhab import rule
