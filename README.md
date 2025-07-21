@@ -191,9 +191,11 @@ from openhab import logging
 logging.info("info message")
 
 logging.error("error message")
+
+logging.warn("warning message")
 ```
 
-3. The rule based logging module, is initialized with the prefix "org.openhab.automation.pythonscripting.\<RuleClassName\>"
+3. In Addition, the rule based logging module, is initialized with the prefix "org.openhab.automation.pythonscripting.\<RuleClassName\>"
 
 ```python
 from openhab import rule
