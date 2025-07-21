@@ -50,7 +50,7 @@ class Test:
         self.logger.info("Rule was triggered")
 ```
 
-[!NOTE]
+**NOTE**
 By default, the scope, Registry and logger is automatically imported for UI based rules
  
 
@@ -87,7 +87,7 @@ Use Python Scripting as script transformation by:
 Simple transformations can also be given as an inline script: `PY(|...)`, e.g. `PY(|"String has " + str(len(input)) + "characters")`.
 It should start with the `|` character, quotes within the script may need to be escaped with a backslash `\` when used with another quoted string as in text configurations.
 
-[!NOTE]
+**NOTE**
 By default, the scope, Registry and logger is automatically imported for `PY` Transformation scripts
 
 ## Examples 
