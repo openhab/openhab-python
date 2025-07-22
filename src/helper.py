@@ -52,6 +52,11 @@ LIFECYCLE_TRACKER = scope.lifecycleTracker
 
 DYNAMIC_ITEM_TAG = "_DYNAMIC_"
 
+def versiontuple(v):
+    return tuple(map(int, (v.split("."))))
+
+BUNDLE_VERSION = versiontuple(".".join(osgi.bundleContext.getBundle().getVersion().toString().split(".")[:3]))
+
 # **** LOGGING ****
 Java_LogFactory = java.type("org.slf4j.LoggerFactory")
 LOG_PREFIX = "org.openhab.automation.pythonscripting"
@@ -66,6 +71,7 @@ elif 'ruleUID' in TopCallStackFrame:
 logger = Java_LogFactory.getLogger( LOG_PREFIX )
 # *****************************************************************
 
+# **** Dummy foreign class to catch non meaningful get attribute errors like "foreign object has no attribute 'xyz'"
 class CustomForeignClass:
     def __str__(self):
         return str(self.getClass())
@@ -74,14 +80,10 @@ class CustomForeignClass:
         raise AttributeError("Java instance of '{}' has not attribute '{}'".format(self.getClass(), name))
 
 register_interop_type(Java_Object, CustomForeignClass)
+# *****************************************************************
 
 class NotInitialisedException(Exception):
     pass
-
-def versiontuple(v):
-    return tuple(map(int, (v.split("."))))
-
-BUNDLE_VERSION = versiontuple(".".join(osgi.bundleContext.getBundle().getVersion().toString().split(".")[:3]))
 
 class rule():
     def __init__(self, name=None, description=None, tags=None, triggers=None, conditions=None, profile=None):
