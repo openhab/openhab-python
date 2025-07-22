@@ -231,7 +231,7 @@ class JavaConversionHelper():
 
     @staticmethod
     def convertState(state):
-        if isinstance(state, Java_DateTimeType):
+        if java.instanceof(state, Java_DateTimeType):
             return JavaConversionHelper._convertZonedDateTime(state.getZonedDateTime())
         #elif state.getClass().getName() == 'org.openhab.core.library.types.QuantityType':
         #    return QuantityType(state)
@@ -239,30 +239,30 @@ class JavaConversionHelper():
 
     @staticmethod
     def convert(value):
-        # convert polyglot.ForeignNone => None
-        if isinstance(value, ForeignNone):
-            return None
-
-        if isinstance(value, Java_Item):
+        if java.instanceof(value, Java_Item):
             return Item(value)
 
-        if isinstance(value, Java_State):
+        if java.instanceof(value, Java_State):
             return JavaConversionHelper.convertState(value)
 
-        if isinstance(value, Java_ZonedDateTime):
+        if java.instanceof(value, Java_ZonedDateTime):
             return JavaConversionHelper._convertZonedDateTime(value)
 
-        if isinstance(value, Java_Instant):
+        if java.instanceof(value, Java_Instant):
             return datetime.fromisoformat(value.toString())
 
-        if isinstance(value, Java_HistoricItem):
+        if java.instanceof(value, Java_HistoricItem):
             return HistoricItem(value)
 
-        if isinstance(value, Java_Iterable):
+        if java.instanceof(value, Java_Iterable):
             _values = []
             for _value in value:
                 _values.append(JavaConversionHelper.convert(_value))
             return _values
+
+        # convert polyglot.ForeignNone => None
+        if isinstance(value, ForeignNone):
+            return None
 
         return value
 
@@ -389,7 +389,7 @@ class Item():
     def _toOpenhabPrimitiveType(value):
         if value is None:
             return 'NULL'
-        if isinstance(value, Java_UnDefType):
+        if java.instanceof(value, Java_UnDefType):
             return 'UNDEF'
         if isinstance(value, str) or isinstance(value, int) or isinstance(value, float):
             return value
@@ -399,24 +399,24 @@ class Item():
 
     @staticmethod
     def _checkIfDifferent(current_state, new_state):
-        if not isinstance(current_state, Java_UnDefType):
-            if isinstance(current_state, Java_PercentType):
+        if not java.instanceof(current_state, Java_UnDefType):
+            if java.instanceof(current_state, Java_PercentType):
                 if isinstance(new_state, str):
                     if new_state == "UP":
                         new_state = 0
                     if new_state == "DOWN":
                         new_state = 100
-                elif isinstance(new_state, Java_UpDownType):
+                elif java.instanceof(new_state, Java_UpDownType):
                     new_state = (0 if new_state.toFullString() == "UP" else 100)
 
-            if isinstance(new_state, Java_PrimitiveType):
+            if java.instanceof(new_state, Java_PrimitiveType):
                 new_state = new_state.toFullString()
             elif isinstance(new_state, datetime):
                 new_state = new_state.isoformat()
             else:
                 new_state = str(new_state)
 
-            if isinstance(current_state, Java_PrimitiveType):
+            if java.instanceof(current_state, Java_PrimitiveType):
                 current_state = current_state.toFullString()
             elif isinstance(current_state, datetime):
                 current_state = current_state.isoformat()
@@ -487,7 +487,7 @@ class Registry():
             state = STATE_REGISTRY.get(item_name)
             if state is None:
                 raise NotInitialisedException("Item state for {} not found".format(item_name))
-            if default is not None and isinstance(state, Java_UnDefType):
+            if default is not None and java.instanceof(state, Java_UnDefType):
                 state = default
             return JavaConversionHelper.convertState(state)
         raise Exception("Unsupported parameter type {}".format(type(item_name)))
