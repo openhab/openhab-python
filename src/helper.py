@@ -1,4 +1,5 @@
 import java
+from polyglot import register_interop_type, ForeignNone
 
 import time
 import threading
@@ -31,30 +32,8 @@ from org.openhab.core.persistence import HistoricItem as Java_HistoricItem
 
 from org.openhab.core.items import ItemNotFoundException
 
-#Java_MetadataKey = java.type("org.openhab.core.items.MetadataKey")
-#Java_Metadata = java.type("org.openhab.core.items.Metadata")
-
-#Java_ChannelUID = java.type("org.openhab.core.thing.ChannelUID")
-#Java_ThingUID = java.type("org.openhab.core.thing.ThingUID")
-#Java_SimpleRule = java.type("org.openhab.core.automation.module.script.rulesupport.shared.simple.SimpleRule")
-
-#Java_PersistenceExtensions = java.type("org.openhab.core.persistence.extensions.PersistenceExtensions")
-#Java_Semantics = java.type("org.openhab.core.model.script.actions.Semantics")
-
-#Java_Item = java.type("org.openhab.core.items.Item")
-#Java_GroupItem = java.type("org.openhab.core.items.GroupItem")
-#Java_State = java.type("org.openhab.core.types.State")
-#Java_HistoricItem = java.type("org.openhab.core.persistence.HistoricItem")
-#Java_DateTimeType = java.type("org.openhab.core.library.types.DateTimeType")
-Java_ZonedDateTime = java.type("java.time.ZonedDateTime")
-Java_Instant = java.type("java.time.Instant")
-Java_Iterable = java.type("java.lang.Iterable")
-
-#Java_DecimalType = java.type("org.openhab.core.library.types.DecimalType")
-#Java_UpDownType = java.type("org.openhab.core.library.types.UpDownType")
-#Java_PercentType = java.type("org.openhab.core.library.types.PercentType")
-#Java_PrimitiveType = java.type("org.openhab.core.types.PrimitiveType")
-#Java_UnDefType = java.type("org.openhab.core.types.UnDefType")
+from java.time import ZonedDateTime as Java_ZonedDateTime, Instant as Java_Instant
+from java.lang import Object as Java_Object, Iterable as Java_Iterable
 
 METADATA_REGISTRY = getService("org.openhab.core.items.MetadataRegistry")
 
@@ -86,6 +65,15 @@ elif 'ruleUID' in TopCallStackFrame:
     NAME_PREFIX = "{}".format(TopCallStackFrame['ruleUID'])
 logger = Java_LogFactory.getLogger( LOG_PREFIX )
 # *****************************************************************
+
+class CustomForeignClass:
+    def __str__(self):
+        return str(self.getClass())
+
+    def __getattr__(self, name):
+        raise AttributeError("Java instance of '{}' has not attribute '{}'".format(self.getClass(), name))
+
+register_interop_type(Java_Object, CustomForeignClass)
 
 class NotInitialisedException(Exception):
     pass
@@ -243,7 +231,7 @@ class JavaConversionHelper():
 
     @staticmethod
     def convertState(state):
-        if java.instanceof(state, Java_DateTimeType):
+        if isinstance(state, Java_DateTimeType):
             return JavaConversionHelper._convertZonedDateTime(state.getZonedDateTime())
         #elif state.getClass().getName() == 'org.openhab.core.library.types.QuantityType':
         #    return QuantityType(state)
@@ -251,22 +239,26 @@ class JavaConversionHelper():
 
     @staticmethod
     def convert(value):
-        if java.instanceof(value, Java_Item):
+        # convert polyglot.ForeignNone => None
+        if isinstance(value, ForeignNone):
+            return None
+
+        if isinstance(value, Java_Item):
             return Item(value)
 
-        if java.instanceof(value, Java_State):
+        if isinstance(value, Java_State):
             return JavaConversionHelper.convertState(value)
 
-        if java.instanceof(value, Java_ZonedDateTime):
+        if isinstance(value, Java_ZonedDateTime):
             return JavaConversionHelper._convertZonedDateTime(value)
 
-        if java.instanceof(value, Java_Instant):
+        if isinstance(value, Java_Instant):
             return datetime.fromisoformat(value.toString())
 
-        if java.instanceof(value, Java_HistoricItem):
+        if isinstance(value, Java_HistoricItem):
             return HistoricItem(value)
 
-        if java.instanceof(value, Java_Iterable):
+        if isinstance(value, Java_Iterable):
             _values = []
             for _value in value:
                 _values.append(JavaConversionHelper.convert(_value))
@@ -397,7 +389,7 @@ class Item():
     def _toOpenhabPrimitiveType(value):
         if value is None:
             return 'NULL'
-        if java.instanceof(value, Java_UnDefType):
+        if isinstance(value, Java_UnDefType):
             return 'UNDEF'
         if isinstance(value, str) or isinstance(value, int) or isinstance(value, float):
             return value
@@ -407,24 +399,24 @@ class Item():
 
     @staticmethod
     def _checkIfDifferent(current_state, new_state):
-        if not java.instanceof(current_state, Java_UnDefType):
-            if java.instanceof(current_state, Java_PercentType):
+        if not isinstance(current_state, Java_UnDefType):
+            if isinstance(current_state, Java_PercentType):
                 if isinstance(new_state, str):
                     if new_state == "UP":
                         new_state = 0
                     if new_state == "DOWN":
                         new_state = 100
-                elif java.instanceof(new_state, Java_UpDownType):
+                elif isinstance(new_state, Java_UpDownType):
                     new_state = (0 if new_state.toFullString() == "UP" else 100)
 
-            if java.instanceof(new_state, Java_PrimitiveType):
+            if isinstance(new_state, Java_PrimitiveType):
                 new_state = new_state.toFullString()
             elif isinstance(new_state, datetime):
                 new_state = new_state.isoformat()
             else:
                 new_state = str(new_state)
 
-            if java.instanceof(current_state, Java_PrimitiveType):
+            if isinstance(current_state, Java_PrimitiveType):
                 current_state = current_state.toFullString()
             elif isinstance(current_state, datetime):
                 current_state = current_state.isoformat()
@@ -495,7 +487,7 @@ class Registry():
             state = STATE_REGISTRY.get(item_name)
             if state is None:
                 raise NotInitialisedException("Item state for {} not found".format(item_name))
-            if default is not None and java.instanceof(state, Java_UnDefType):
+            if default is not None and isinstance(state, Java_UnDefType):
                 state = default
             return JavaConversionHelper.convertState(state)
         raise Exception("Unsupported parameter type {}".format(type(item_name)))

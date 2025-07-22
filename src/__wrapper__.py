@@ -53,10 +53,17 @@ def __import_wrapper__():
         #name = tb.tb_frame.f_code.co_name
         #line_no = tb.tb_lineno
         print("Traceback (most recent call last):", file=sys.stderr)
-        for line in traceback.format_tb(tb):
-            if "importWrapper" in line and "importOrg" in line:
+        _tb_r = []
+        for _tb in traceback.extract_tb(tb):
+            # hide "importWrapper" to keep focus on real problem
+            if "lib/openhab/__wrapper__.py" in _tb.filename and _tb.name == "importWrapper":
                 continue
-            #print("  File \"{}\", line {}, in {}".format(filename, line_no, name))
+            # hide "CustomForeignClass" to keep focus on real problem
+            if "lib/openhab/helper.py" in _tb.filename and _tb.name == "__getattr__" and "Java instance of" in _tb.line:
+                continue
+            _tb_r.append(_tb)
+
+        for line in traceback.format_list(_tb_r):
             print(line, file=sys.stderr)
         print("{}, {}".format(exctype.__name__, excvalue), file=sys.stderr)
         #print("{}: {}".format(exctype, excvalue), file=sys.stderr)
