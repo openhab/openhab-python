@@ -302,7 +302,7 @@ class ItemPersistence():
 
         value = ( value / duration )
 
-        return [ Java_DecimalType(value), Java_DecimalType(min_value), Java_DecimalType(max_value) ]
+        return [ JavaConversionHelper.convertState(Java_DecimalType(value)), JavaConversionHelper.convertState(Java_DecimalType(min_value)), JavaConversionHelper.convertState(Java_DecimalType(max_value)) ]
 
     def getStableState(self, time_slot, end_time = None):
         value, _, _ = self.getStableMinMaxState(time_slot, end_time)
