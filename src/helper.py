@@ -1,5 +1,4 @@
 import java
-from polyglot import register_interop_type, ForeignNone
 
 import time
 import threading
@@ -31,6 +30,8 @@ from org.openhab.core.library.types import DecimalType as Java_DecimalType, UpDo
 from org.openhab.core.persistence import HistoricItem as Java_HistoricItem
 
 from org.openhab.core.items import ItemNotFoundException
+
+from polyglot import ForeignNone
 
 from java.time import ZonedDateTime as Java_ZonedDateTime, Instant as Java_Instant
 from java.lang import Object as Java_Object, Iterable as Java_Iterable
@@ -69,17 +70,6 @@ elif 'ruleUID' in TopCallStackFrame:
     LOG_PREFIX = "{}.{}".format(LOG_PREFIX, TopCallStackFrame['ruleUID'])
     NAME_PREFIX = "{}".format(TopCallStackFrame['ruleUID'])
 logger = Java_LogFactory.getLogger( LOG_PREFIX )
-# *****************************************************************
-
-# **** Dummy foreign class to catch non meaningful get attribute errors like "foreign object has no attribute 'xyz'"
-class CustomForeignClass:
-    def __str__(self):
-        return str(self.getClass())
-
-    def __getattr__(self, name):
-        raise AttributeError("Java instance of '{}' has not attribute '{}'".format(self.getClass(), name))
-
-register_interop_type(Java_Object, CustomForeignClass)
 # *****************************************************************
 
 class NotInitialisedException(Exception):
