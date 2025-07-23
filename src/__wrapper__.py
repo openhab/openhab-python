@@ -9,6 +9,8 @@ def __import_wrapper__():
     import os
     import traceback
 
+    importOrg = builtins.__import__
+
     class WrappedException(Exception):
         def __init__(self, exception, skip):
             self.exception = exception
@@ -28,6 +30,7 @@ def __import_wrapper__():
             return Module(name, modules)
         msg = "No module named '{}{}'".format(name, '.' + '|'.join(fromlist) if fromlist else "")
         raise WrappedException(ModuleNotFoundError(msg), 2)
+
     def getImportProxy():
         depth = 1
         while True:
@@ -38,6 +41,7 @@ def __import_wrapper__():
                 depth += 1
             except ValueError:
                 raise EnvironmentError("No __import_proxy__ is available")
+
     importProxy = getImportProxy()
     def importWrapper(name, globals=None, locals=None, fromlist=(), level=0):
         if name.startswith("org.openhab"):
@@ -53,8 +57,6 @@ def __import_wrapper__():
             modules = importProxy(name, fromlist)
             return processModules(name, fromlist, modules)
         return importOrg(name, globals, locals, fromlist, level)
-
-    importOrg = builtins.__import__
     builtins.__import__ = importWrapper
 
     def excepthook(exctype, excvalue, tb):
