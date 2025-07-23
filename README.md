@@ -342,10 +342,11 @@ from scope import cache
 from scope import osgi
 ```
 
-Additionally you can import all Java classes from 'org.openhab' package like
-
+Additionally you can import all Java classes from 'java.*' or 'org.openhab.*' package like
 
 ```python
+from java.lang import Object
+
 from org.openhab.core import OpenHAB
 
 print(str(OpenHAB.getVersion()))
