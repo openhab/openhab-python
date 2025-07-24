@@ -216,6 +216,15 @@ class rule():
         except:
             rule_obj.logger.error("Rule execution failed:\n" + traceback.format_exc())
 
+#@interop_type(Java_DateTimeType)
+#class DateTimeType():
+#    def getDatetime(self):
+#        return self.getZonedDateTime()
+
+@interop_type(Java_State)
+@interop_type(Java_Thing)
+@interop_type(Java_Channel)
+@interop_type(Java_HistoricItem)
 class JavaConversionWrapper():
     def __getattribute__(self, name):
         attr = super().__getattribute__(name)
@@ -382,27 +391,6 @@ class ItemPersistence(JavaConversionWrapper):
         value, _, _ = self.getStableMinMaxState(time_slot, end_time)
         return value
 
-@interop_type(Java_State)
-class State(JavaConversionWrapper):
-    pass
-
-#@interop_type(Java_DateTimeType)
-#class DateTimeType():
-#    def getDatetime(self):
-#        return self.getZonedDateTime()
-
-@interop_type(Java_Thing)
-class Thing(JavaConversionWrapper):
-    pass
-
-@interop_type(Java_Channel)
-class Channel(JavaConversionWrapper):
-    pass
-
-@interop_type(Java_HistoricItem)
-class HistoricItem(JavaConversionWrapper):
-    pass
-
 class Registry():
     @staticmethod
     def getThings():
@@ -474,7 +462,6 @@ class Registry():
     def addItem(item_config):
         item = Registry._createItem(item_config)
         ITEM_REGISTRY.add(item)
-
         return Registry.getItem(item_config['name'])
 
     @staticmethod
