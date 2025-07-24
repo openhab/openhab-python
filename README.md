@@ -432,14 +432,13 @@ from openhab import Registry
 
 | Function                 | Usage                                                                                 | Return Value                                                                                        |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| getThings                | getThings()                                                                           | Array of [openHAB Things](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/thing)      |
-| getThing                 | getThing(uid)                                                                         | [openHAB Thing](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/thing)                |
-| getChannel               | getChannel(uid)                                                                       | [openHAB Channel](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/channel)            |
-| getItemState             | getItemState(item_name, default = None)                                               | [openHAB State](https://www.openhab.org/javadoc/latest/org/openhab/core/types/state)                |
-| getItem                  | getItem(item_name)                                                                    | [Item](#class-item)                                                                                 |
-| resolveItem              | resolveItem(item_or_item_name)                                                        | [Item](#class-item)                                                                                 |
-| addItem                  | addItem(item_config)                                                                  | [Item](#class-item)                                                                                 |
-| safeItemName             | safeItemName(item_name)                                                               | Escaped string                                                                                      |
+| getThings                | Registry.getThings()                                                                  | Array of [openHAB Things](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/thing)      |
+| getThing                 | Registry.getThing(uid)                                                                | [openHAB Thing](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/thing)                |
+| getChannel               | Registry.getChannel(uid)                                                              | [openHAB Channel](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/channel)            |
+| getItemState             | Registry.getItemState(item_name, default = None)                                      | [openHAB State](https://www.openhab.org/javadoc/latest/org/openhab/core/types/state)                |
+| getItem                  | Registry.getItem(item_name)                                                           | [Item](#class-item)                                                                                 |
+| resolveItem              | Registry.resolveItem(item_or_item_name)                                               | [Item](#class-item)                                                                                 |
+| addItem                  | Registry.addItem(item_config)                                                         | [Item](#class-item)                                                                                 |
 
 ### class Item 
 
@@ -449,13 +448,14 @@ There is no need to import this class directly. It is returned as a result of fu
 
 | Function                 | Usage                                                                                 | Return Value                                                                                        |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| postUpdate               | postUpdate(state)                                                                     |                                                                                                     |
-| postUpdateIfDifferent    | postUpdateIfDifferent(state)                                                          |                                                                                                     |
-| sendCommand              | sendCommand(command)                                                                  |                                                                                                     |
-| sendCommandIfDifferent   | sendCommandIfDifferent(command)                                                       |                                                                                                     |
-| getPersistence           | getPersistence(service_id = None)                                                     | [ItemPersistence](#class-itempersistence)                                                           |
-| getSemantic              | getSemantic()                                                                         | [ItemSemantic](#class-itemsemantic)                                                                 |
-| getMetadata              | getMetadata()                                                                         | [ItemMetadata](#class-itemmetadata)                                                                 |
+| postUpdate               | \<item\>.postUpdate(state)                                                            |                                                                                                     |
+| postUpdateIfDifferent    | \<item\>.postUpdateIfDifferent(state)                                                 |                                                                                                     |
+| sendCommand              | \<item\>.sendCommand(command)                                                         |                                                                                                     |
+| sendCommandIfDifferent   | \<item\>.sendCommandIfDifferent(command)                                              |                                                                                                     |
+| getPersistence           | \<item\>.getPersistence(service_id = None)                                            | [ItemPersistence](#class-itempersistence)                                                           |
+| getSemantic              | \<item\>.getSemantic()                                                                | [ItemSemantic](#class-itemsemantic)                                                                 |
+| getMetadata              | \<item\>.getMetadata()                                                                | [ItemMetadata](#class-itemmetadata)                                                                 |
+| buildSafeItemName        | Item.buildSafeItemName(item_name)                                                     | Escaped string                                                                                      |
 | <...>                    | see [openHAB Item API](https://www.openhab.org/javadoc/latest/org/openhab/core/items/item) |                                                                                                |
 
 ### class ItemPersistence 
@@ -466,8 +466,8 @@ There is no need to import this class directly. It is returned as a result of th
 
 | Function                 | Usage                                                                                 | Description                                                                                         |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| getStableMinMaxState     | getStableMinMaxState(time_slot, end_time = None)                                      | Average calculation which takes into account the values depending on their duration                 |
-| getStableState           | getStableState(time_slot, end_time = None)                                            | Average calculation which takes into account the values depending on their duration                 |
+| getStableMinMaxState     | \<persistance\>.getStableMinMaxState(time_slot, end_time = None)                      | Average calculation which takes into account the values depending on their duration                 |
+| getStableState           | \<persistance\>.getStableState(time_slot, end_time = None)                            | Average calculation which takes into account the values depending on their duration                 |
 | <...>                    | see [openHAB PersistenceExtensions API](https://www.openhab.org/javadoc/latest/org/openhab/core/persistence/extensions/persistenceextensions) |                                             |
 
 ### class ItemSemantic 
@@ -488,10 +488,10 @@ There is no need to import this class directly. It is returned as a result of th
 
 | Function                 | Usage                                                                                 | Description                                                                                         |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| get                      | get(namespace)                                                                        | [openHAB Metadata](https://www.openhab.org/javadoc/latest/org/openhab/core/items/metadata)          |
-| set                      | set(namespace, value, configuration=None)                                             | [openHAB Metadata](https://www.openhab.org/javadoc/latest/org/openhab/core/items/metadata)          |
-| remove                   | remove(namespace)                                                                     | [openHAB Metadata](https://www.openhab.org/javadoc/latest/org/openhab/core/items/metadata)          |
-| removeAll                | removeAll()                                                                           |                                                                                                     |
+| get                      | \<metadata\>.get(namespace)                                                           | [openHAB Metadata](https://www.openhab.org/javadoc/latest/org/openhab/core/items/metadata)          |
+| set                      | \<metadata\>.set(namespace, value, configuration=None)                                | [openHAB Metadata](https://www.openhab.org/javadoc/latest/org/openhab/core/items/metadata)          |
+| remove                   | \<metadata\>.remove(namespace)                                                        | [openHAB Metadata](https://www.openhab.org/javadoc/latest/org/openhab/core/items/metadata)          |
+| removeAll                | \<metadata\>.removeAll()                                                              |                                                                                                     |
 
 ### class Timer 
 
@@ -501,7 +501,7 @@ from openhab import Timer
 
 | Function                 | Usage                                                                                 | Description                                                                                         |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| createTimeout            | createTimeout(duration, callback, args=[], kwargs={}, old_timer = None, max_count = 0 ) | Create a timer that will run callback with arguments args and keyword arguments kwargs, after duration seconds have passed. If old_timer from e.g previous call is provided, it will be stopped if not already triggered. If max_count together with old_timer is provided, then 'max_count' times the old timer will be stopped and recreated, before the callback will be triggered immediately |
+| createTimeout            | Timer.createTimeout(duration, callback, args=[], kwargs={}, old_timer = None, max_count = 0 ) | Create a timer that will run callback with arguments args and keyword arguments kwargs, after duration seconds have passed. If old_timer from e.g previous call is provided, it will be stopped if not already triggered. If max_count together with old_timer is provided, then 'max_count' times the old timer will be stopped and recreated, before the callback will be triggered immediately |
 
 ## Others
 

@@ -284,6 +284,11 @@ class Item(JavaConversionWrapper):
         return ItemMetadata(self)
 
     @staticmethod
+    def buildSafeItemName(s):
+        # Remove quotes and replace non-alphanumeric with underscores
+        return ''.join([c if c.isalnum() else '_' for c in s.replace('"', '').replace("'", '')])
+
+    @staticmethod
     # Insight came from openhab-js. Helper function to convert a JS type to a primitive type accepted by openHAB Core, which often is a string representation of the type.
     #
     # Converting any complex type to a primitive type is required to avoid multi-threading issues (as GraalJS does not allow multithreaded access to a script's context),
@@ -465,16 +470,11 @@ class Registry():
         return Registry.getItem(item_config['name'])
 
     @staticmethod
-    def safeItemName(s):
-        # Remove quotes and replace non-alphanumeric with underscores
-        return ''.join([c if c.isalnum() else '_' for c in s.replace('"', '').replace("'", '')])
-
-    @staticmethod
     def _createItem(item_config):
         if 'name' not in item_config or 'type' not in item_config:
             raise Exception('item_config.name or item_config.type not set')
 
-        item_config['name'] = Registry.safeItemName(item_config['name'])
+        item_config['name'] = Item.buildSafeItemName(item_config['name'])
 
         base_item = None
         if item_config['type'] == 'Group' and 'giBaseType' in item_config:
