@@ -280,6 +280,9 @@ class Item(JavaConversionWrapper):
     def getSemantic(self):
         return ItemSemantic(self)
 
+    def getMetadata(self):
+        return ItemMetadata(self)
+
     @staticmethod
     # Insight came from openhab-js. Helper function to convert a JS type to a primitive type accepted by openHAB Core, which often is a string representation of the type.
     #
@@ -324,6 +327,25 @@ class Item(JavaConversionWrapper):
 
             return current_state != new_state
         return True
+
+class ItemMetadata():
+    def __init__(self, item):
+        self.item = item
+
+    def get(self, namespace):
+        return METADATA_REGISTRY.get(Java_MetadataKey(namespace, self.item.getName()))
+
+    def set(self, namespace, value, configuration=None):
+        if self.get(namespace) == None:
+            return METADATA_REGISTRY.add(Java_Metadata(Java_MetadataKey(namespace, self.item.getName()), value, configuration))
+        else:
+            return METADATA_REGISTRY.update(Java_Metadata(Java_MetadataKey(namespace, self.item.getName()), value, configuration))
+
+    def remove(self, namespace):
+        return METADATA_REGISTRY.remove(Java_MetadataKey(namespace, self.getName()))
+
+    def removeAll(self):
+        METADATA_REGISTRY.removeItemMetadata(self.getName())
 
 class ItemSemantic(JavaConversionWrapper):
     def __init__(self, item):
@@ -409,28 +431,6 @@ class Registry():
         if channel is None:
             raise NotInitialisedException("Channel {} not found".format(uid))
         return channel
-
-    @staticmethod
-    def getItemMetadata(item_or_item_name, namespace):
-        item_name = Registry._getItemName(item_or_item_name)
-        return METADATA_REGISTRY.get(Java_MetadataKey(namespace, item_name))
-
-    @staticmethod
-    def setItemMetadata(item_or_item_name, namespace, value, configuration=None):
-        item_name = Registry._getItemName(item_or_item_name)
-        if Registry.getItemMetadata(item_or_item_name, namespace) == None:
-            return METADATA_REGISTRY.add(Java_Metadata(Java_MetadataKey(namespace, item_name), value, configuration))
-        else:
-            return METADATA_REGISTRY.update(Java_Metadata(Java_MetadataKey(namespace, item_name), value, configuration))
-
-    @staticmethod
-    def removeItemMetadata(item_or_item_name, namespace = None):
-        item_name = Registry._getItemName(item_or_item_name)
-        if namespace == None:
-            METADATA_REGISTRY.removeItemMetadata(item_name)
-            return None
-        else:
-            return METADATA_REGISTRY.remove(Java_MetadataKey(namespace, item_name))
 
     @staticmethod
     def getItemState(item_name, default = None):

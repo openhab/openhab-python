@@ -435,9 +435,6 @@ from openhab import Registry
 | getThings                | getThings()                                                                           | Array of [openHAB Things](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/thing)      |
 | getThing                 | getThing(uid)                                                                         | [openHAB Thing](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/thing)                |
 | getChannel               | getChannel(uid)                                                                       | [openHAB Channel](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/channel)            |
-| getItemMetadata          | getItemMetadata(item_or_item_name, namespace)                                         | [openHAB Metadata](https://www.openhab.org/javadoc/latest/org/openhab/core/items/metadata)          |
-| setItemMetadata          | setItemMetadata(item_or_item_name, namespace, value, configuration=None)              | [openHAB Metadata](https://www.openhab.org/javadoc/latest/org/openhab/core/items/metadata)          |
-| removeItemMetadata       | removeItemMetadata(item_or_item_name, namespace = None)                               | [openHAB Metadata](https://www.openhab.org/javadoc/latest/org/openhab/core/items/metadata)          |
 | getItemState             | getItemState(item_name, default = None)                                               | [openHAB State](https://www.openhab.org/javadoc/latest/org/openhab/core/types/state)                |
 | getItem                  | getItem(item_name)                                                                    | [Item](#class-item)                                                                                 |
 | resolveItem              | resolveItem(item_or_item_name)                                                        | [Item](#class-item)                                                                                 |
@@ -458,6 +455,7 @@ There is no need to import this class directly. It is returned as a result of fu
 | sendCommandIfDifferent   | sendCommandIfDifferent(command)                                                       |                                                                                                     |
 | getPersistence           | getPersistence(service_id = None)                                                     | [ItemPersistence](#class-itempersistence)                                                           |
 | getSemantic              | getSemantic()                                                                         | [ItemSemantic](#class-itemsemantic)                                                                 |
+| getMetadata              | getMetadata()                                                                         | [ItemMetadata](#class-itemmetadata)                                                                 |
 | <...>                    | see [openHAB Item API](https://www.openhab.org/javadoc/latest/org/openhab/core/items/item) |                                                                                                |
 
 ### class ItemPersistence 
@@ -481,6 +479,19 @@ There is no need to import this class directly. It is returned as a result of th
 | Function                 | Usage                                                                                 |
 | ------------------------ | ------------------------------------------------------------------------------------- |
 | <...>                    | see [openHAB Semantics API](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/semantics) |
+
+### class ItemMetadata 
+
+ItemMetadata is a proxy class to manage [openHAB Metadata](https://www.openhab.org/javadoc/latest/org/openhab/core/items/metadata) 
+
+There is no need to import this class directly. It is returned as a result of the function call [Item](#class-item).getMetadata().
+
+| Function                 | Usage                                                                                 | Description                                                                                         |
+| ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| get                      | get(namespace)                                                                        | [openHAB Metadata](https://www.openhab.org/javadoc/latest/org/openhab/core/items/metadata)          |
+| set                      | set(namespace, value, configuration=None)                                             | [openHAB Metadata](https://www.openhab.org/javadoc/latest/org/openhab/core/items/metadata)          |
+| remove                   | remove(namespace)                                                                     | [openHAB Metadata](https://www.openhab.org/javadoc/latest/org/openhab/core/items/metadata)          |
+| removeAll                | removeAll()                                                                           |                                                                                                     |
 
 ### class Timer 
 
