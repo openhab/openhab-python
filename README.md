@@ -366,7 +366,7 @@ can also be reewritten as
 from openhab.helper import Registry
 ```
 
-but you should always use the short variant. Inside the `openhab.helper` sub_module are additional classes available like [Item](#class-item), [Thing](#class-thing) or [Channel](#class-channel). But there is no need to import them directly, because they are only useful as a result of function calls of the [Registry](#class-registry) class.
+but you should always use the short variant.
 
 | Class                    | Usage                                                                                 | Description                                                                                         |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
