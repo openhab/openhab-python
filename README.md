@@ -432,13 +432,13 @@ from openhab import Registry
 
 | Function                 | Usage                                                                                 | Return Value                                                                                        |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| getThings                | Registry.getThings()                                                                  | Array of [openHAB Things](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/thing)      |
-| getThing                 | Registry.getThing(uid)                                                                | [openHAB Thing](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/thing)                |
-| getChannel               | Registry.getChannel(uid)                                                              | [openHAB Channel](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/channel)            |
-| getItemState             | Registry.getItemState(item_name, default = None)                                      | [openHAB State](https://www.openhab.org/javadoc/latest/org/openhab/core/types/state)                |
-| getItem                  | Registry.getItem(item_name)                                                           | [Item](#class-item)                                                                                 |
-| resolveItem              | Registry.resolveItem(item_or_item_name)                                               | [Item](#class-item)                                                                                 |
-| addItem                  | Registry.addItem(item_config)                                                         | [Item](#class-item)                                                                                 |
+| @static getThings        | Registry.getThings()                                                                  | Array of [openHAB Things](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/thing)      |
+| @static getThing         | Registry.getThing(uid)                                                                | [openHAB Thing](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/thing)                |
+| @static getChannel       | Registry.getChannel(uid)                                                              | [openHAB Channel](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/channel)            |
+| @static getItemState     | Registry.getItemState(item_name, default = None)                                      | [openHAB State](https://www.openhab.org/javadoc/latest/org/openhab/core/types/state)                |
+| @static getItem          | Registry.getItem(item_name)                                                           | [Item](#class-item)                                                                                 |
+| @static resolveItem      | Registry.resolveItem(item_or_item_name)                                               | [Item](#class-item)                                                                                 |
+| @static addItem          | Registry.addItem(item_config)                                                         | [Item](#class-item)                                                                                 |
 
 ### class Item 
 
@@ -455,7 +455,7 @@ There is no need to import this class directly. It is returned as a result of fu
 | getPersistence           | \<obj\>.getPersistence(service_id = None)                                             | [ItemPersistence](#class-itempersistence)                                                           |
 | getSemantic              | \<obj\>.getSemantic()                                                                 | [ItemSemantic](#class-itemsemantic)                                                                 |
 | getMetadata              | \<obj\>.getMetadata()                                                                 | [ItemMetadata](#class-itemmetadata)                                                                 |
-| buildSafeItemName        | Item.buildSafeItemName(item_name)                                                     | Escaped string                                                                                      |
+| @static buildSafeItemName| Item.buildSafeItemName(item_name)                                                     | Escaped string                                                                                      |
 | <...>                    | see [openHAB Item API](https://www.openhab.org/javadoc/latest/org/openhab/core/items/item) |                                                                                                |
 
 ### class ItemPersistence 
