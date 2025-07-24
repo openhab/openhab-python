@@ -83,6 +83,6 @@ def __import_wrapper__():
     # => new: "AttributeError, Java instance of 'org.openhab.core.types.UnDefType' has not attribute 'test'"
     class CustomForeignClass:
         def __getattr__(self, name):
-            raise WrappedException(AttributeError("Java instance of '{}' has not attribute '{}'".format(self.getClass(), name)), 1)
+            raise WrappedException(AttributeError("Java instance of '{}' has no attribute '{}'".format(self.getClass(), name)), 1)
     register_interop_type(Java_Object, CustomForeignClass)
 __import_wrapper__()

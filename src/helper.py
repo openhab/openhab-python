@@ -18,12 +18,12 @@ from openhab.services import getService
 
 from org.openhab.core.items import MetadataKey as Java_MetadataKey, Metadata as Java_Metadata
 
-from org.openhab.core.thing import ChannelUID as Java_ChannelUID, ThingUID as Java_ThingUID
+from org.openhab.core.thing import Thing as Java_Thing, Channel as Java_Channel, ChannelUID as Java_ChannelUID, ThingUID as Java_ThingUID
 from org.openhab.core.automation.module.script.rulesupport.shared.simple import SimpleRule as Java_SimpleRule
 from org.openhab.core.persistence.extensions import PersistenceExtensions as Java_PersistenceExtensions
 from org.openhab.core.model.script.actions import Semantics as Java_Semantics
 
-from org.openhab.core.items import Item as Java_Item, GroupItem as Java_GroupItem
+from org.openhab.core.items import Item as Java_Item
 from org.openhab.core.types import State as Java_State, PrimitiveType as Java_PrimitiveType, UnDefType as Java_UnDefType
 from org.openhab.core.library.types import DecimalType as Java_DecimalType, UpDownType as Java_UpDownType, PercentType as Java_PercentType, DateTimeType as Java_DateTimeType
 
@@ -31,7 +31,7 @@ from org.openhab.core.persistence import HistoricItem as Java_HistoricItem
 
 from org.openhab.core.items import ItemNotFoundException
 
-from polyglot import ForeignNone
+from polyglot import ForeignNone, interop_type
 
 from java.time import ZonedDateTime as Java_ZonedDateTime, Instant as Java_Instant
 from java.lang import Object as Java_Object, Iterable as Java_Iterable
@@ -216,40 +216,24 @@ class rule():
         except:
             rule_obj.logger.error("Rule execution failed:\n" + traceback.format_exc())
 
-class JavaConversionHelper():
-    @staticmethod
-    def _convertZonedDateTime(zoned_date_time):
-        return datetime.fromisoformat(zoned_date_time.toString().split("[")[0])
+class JavaConversionWrapper():
+    def __getattribute__(self, name):
+        attr = super().__getattribute__(name)
+        if callable(attr) and name != "_convert":
+            return lambda *args, **kwargs: self._convert( attr(*args) )
+        return attr
 
-    @staticmethod
-    def convertState(state):
-        if java.instanceof(state, Java_DateTimeType):
-            return JavaConversionHelper._convertZonedDateTime(state.getZonedDateTime())
-        #elif state.getClass().getName() == 'org.openhab.core.library.types.QuantityType':
-        #    return QuantityType(state)
-        return state
-
-    @staticmethod
-    def convert(value):
-        if java.instanceof(value, Java_Item):
-            return Item(value)
-
-        if java.instanceof(value, Java_State):
-            return JavaConversionHelper.convertState(value)
-
+    def _convert(self, value):
         if java.instanceof(value, Java_ZonedDateTime):
-            return JavaConversionHelper._convertZonedDateTime(value)
+            return datetime.fromisoformat(value.toString().split("[")[0])
 
         if java.instanceof(value, Java_Instant):
             return datetime.fromisoformat(value.toString())
 
-        if java.instanceof(value, Java_HistoricItem):
-            return HistoricItem(value)
-
         if java.instanceof(value, Java_Iterable):
             _values = []
             for _value in value:
-                _values.append(JavaConversionHelper.convert(_value))
+                _values.append(self._convert(_value))
             return _values
 
         # convert polyglot.ForeignNone => None
@@ -258,10 +242,100 @@ class JavaConversionHelper():
 
         return value
 
-class ItemPersistence():
+@interop_type(Java_Item)
+class Item(JavaConversionWrapper):
+    def postUpdate(self, state):
+        EVENT_BUS.postUpdate(self, Item._toOpenhabPrimitiveType(state))
+
+    def postUpdateIfDifferent(self, state):
+        if not Item._checkIfDifferent(self.getState(), state):
+            return False
+
+        self.postUpdate(state)
+        return True
+
+    def sendCommand(self, command):
+        EVENT_BUS.sendCommand(self, Item._toOpenhabPrimitiveType(command))
+
+    def sendCommandIfDifferent(self, command):
+        if not Item._checkIfDifferent(self.getState(), command):
+            return False
+
+        self.sendCommand(command)
+
+        return True
+
+    def getPersistence(self, service_id = None):
+        return ItemPersistence(self, service_id)
+
+    def getSemantic(self):
+        return ItemSemantic(self)
+
+    @staticmethod
+    # Insight came from openhab-js. Helper function to convert a JS type to a primitive type accepted by openHAB Core, which often is a string representation of the type.
+    #
+    # Converting any complex type to a primitive type is required to avoid multi-threading issues (as GraalJS does not allow multithreaded access to a script's context),
+    # e.g. when passing objects to persistence, which then persists asynchronously.
+    def _toOpenhabPrimitiveType(value):
+        if value is None:
+            return 'NULL'
+        if java.instanceof(value, Java_UnDefType):
+            return 'UNDEF'
+        if isinstance(value, str) or isinstance(value, int) or isinstance(value, float):
+            return value
+        if isinstance(value, datetime):
+            return value.isoformat()
+        return value.toFullString()
+
+    @staticmethod
+    def _checkIfDifferent(current_state, new_state):
+        if not java.instanceof(current_state, Java_UnDefType):
+            if java.instanceof(current_state, Java_PercentType):
+                if isinstance(new_state, str):
+                    if new_state == "UP":
+                        new_state = 0
+                    if new_state == "DOWN":
+                        new_state = 100
+                elif java.instanceof(new_state, Java_UpDownType):
+                    new_state = (0 if new_state.toFullString() == "UP" else 100)
+
+            if java.instanceof(new_state, Java_PrimitiveType):
+                new_state = new_state.toFullString()
+            elif isinstance(new_state, datetime):
+                new_state = new_state.isoformat()
+            else:
+                new_state = str(new_state)
+
+            if java.instanceof(current_state, Java_PrimitiveType):
+                current_state = current_state.toFullString()
+            elif isinstance(current_state, datetime):
+                current_state = current_state.isoformat()
+            else:
+                current_state = str(current_state)
+
+            return current_state != new_state
+        return True
+
+class ItemSemantic(JavaConversionWrapper):
+    def __init__(self, item):
+        self.item = item
+
+    def __getattr__(self, name):
+        attr = getattr(Java_Semantics, name)
+        if callable(attr):
+            return lambda *args, **kwargs: self._convert( attr(*(tuple([self.item]) + args)) )
+        return attr
+
+class ItemPersistence(JavaConversionWrapper):
     def __init__(self, item, service_id = None):
         self.item = item
         self.service_id = service_id
+
+    def __getattr__(self, name):
+        attr = getattr(Java_PersistenceExtensions, name)
+        if callable(attr):
+            return lambda *args, **kwargs: self._convert( attr(*(tuple([self.item]) + args + tuple([] if self.service_id is None else [self.service_id]))) )
+        return attr
 
     def getStableMinMaxState(self, time_slot, end_time = None):
         current_end_time = datetime.now().astimezone() if end_time is None else end_time
@@ -302,135 +376,32 @@ class ItemPersistence():
 
         value = ( value / duration )
 
-        return [ JavaConversionHelper.convertState(Java_DecimalType(value)), JavaConversionHelper.convertState(Java_DecimalType(min_value)), JavaConversionHelper.convertState(Java_DecimalType(max_value)) ]
+        return [ Java_DecimalType(value), Java_DecimalType(min_value), Java_DecimalType(max_value) ]
 
     def getStableState(self, time_slot, end_time = None):
         value, _, _ = self.getStableMinMaxState(time_slot, end_time)
         return value
 
-    def __getattr__(self, name):
-        attr = getattr(Java_PersistenceExtensions, name)
-        if callable(attr):
-            return lambda *args, **kwargs: JavaConversionHelper.convert( attr(*(tuple([self.item.raw_item]) + args + tuple([] if self.service_id is None else [self.service_id]) )) )
-        return attr
+@interop_type(Java_State)
+class State(JavaConversionWrapper):
+    pass
 
-class ItemSemantic():
-    def __init__(self, item):
-        self.item = item
+#@interop_type(Java_DateTimeType)
+#class DateTimeType():
+#    def getDatetime(self):
+#        return self.getZonedDateTime()
 
-    def __getattr__(self, name):
-        attr = getattr(Java_Semantics, name)
-        if callable(attr):
-            return lambda *args, **kwargs: JavaConversionHelper.convert( attr(*(tuple([self.item.raw_item]) + args)) )
-        return attr
+@interop_type(Java_Thing)
+class Thing(JavaConversionWrapper):
+    pass
 
-class HistoricItem():
-    def __init__(self, raw_historic_item):
-        self.raw_historic_item = raw_historic_item
+@interop_type(Java_Channel)
+class Channel(JavaConversionWrapper):
+    pass
 
-    def __getattr__(self, name):
-        attr = getattr(self.raw_historic_item, name)
-        if callable(attr):
-            return lambda *args, **kwargs: JavaConversionHelper.convert( attr(*args) )
-        return attr
-
-class Item():
-    def __init__(self, raw_item):
-        self.raw_item = raw_item
-
-    def postUpdate(self, state):
-        if isinstance(state, datetime):
-            state = state.isoformat()
-        EVENT_BUS.postUpdate(self.raw_item, Item._toOpenhabPrimitiveType(state))
-
-    def postUpdateIfDifferent(self, state):
-        if not Item._checkIfDifferent(self.getState(), state):
-            return False
-
-        self.postUpdate(state)
-        return True
-
-    def sendCommand(self, command):
-        EVENT_BUS.sendCommand(self.raw_item, Item._toOpenhabPrimitiveType(command))
-
-    def sendCommandIfDifferent(self, command):
-        if not Item._checkIfDifferent(self.getState(), command):
-            return False
-
-        self.sendCommand(command)
-
-        return True
-
-    def getPersistence(self, service_id = None):
-        return ItemPersistence(self, service_id)
-
-    def getSemantic(self):
-        return ItemSemantic(self)
-
-    def __getattr__(self, name):
-        attr = getattr(self.raw_item, name)
-        if callable(attr):
-            return lambda *args, **kwargs: JavaConversionHelper.convert( attr(*args) )
-        return attr
-
-    @staticmethod
-    # Insight came from openhab-js. Helper function to convert a JS type to a primitive type accepted by openHAB Core, which often is a string representation of the type.
-    #
-    # Converting any complex type to a primitive type is required to avoid multi-threading issues (as GraalJS does not allow multithreaded access to a script's context),
-    # e.g. when passing objects to persistence, which then persists asynchronously.
-    def _toOpenhabPrimitiveType(value):
-        if value is None:
-            return 'NULL'
-        if java.instanceof(value, Java_UnDefType):
-            return 'UNDEF'
-        if isinstance(value, str) or isinstance(value, int) or isinstance(value, float):
-            return value
-        if isinstance(value, datetime):
-            return value
-        return value.toFullString()
-
-    @staticmethod
-    def _checkIfDifferent(current_state, new_state):
-        if not java.instanceof(current_state, Java_UnDefType):
-            if java.instanceof(current_state, Java_PercentType):
-                if isinstance(new_state, str):
-                    if new_state == "UP":
-                        new_state = 0
-                    if new_state == "DOWN":
-                        new_state = 100
-                elif java.instanceof(new_state, Java_UpDownType):
-                    new_state = (0 if new_state.toFullString() == "UP" else 100)
-
-            if java.instanceof(new_state, Java_PrimitiveType):
-                new_state = new_state.toFullString()
-            elif isinstance(new_state, datetime):
-                new_state = new_state.isoformat()
-            else:
-                new_state = str(new_state)
-
-            if java.instanceof(current_state, Java_PrimitiveType):
-                current_state = current_state.toFullString()
-            elif isinstance(current_state, datetime):
-                current_state = current_state.isoformat()
-            else:
-                current_state = str(current_state)
-
-            return current_state != new_state
-        return True
-
-class Thing():
-    def __init__(self, raw_item):
-        self.raw_item = raw_item
-
-    def __getattr__(self, name):
-        return getattr(self.raw_item, name)
-
-class Channel():
-    def __init__(self, raw_item):
-        self.raw_item = raw_item
-
-    def __getattr__(self, name):
-        return getattr(self.raw_item, name)
+@interop_type(Java_HistoricItem)
+class HistoricItem(JavaConversionWrapper):
+    pass
 
 class Registry():
     @staticmethod
@@ -442,14 +413,14 @@ class Registry():
         thing = THING_REGISTRY.get(Java_ThingUID(uid))
         if thing is None:
             raise NotInitialisedException("Thing {} not found".format(uid))
-        return Thing(thing)
+        return thing
 
     @staticmethod
     def getChannel(uid):
         channel = THING_REGISTRY.getChannel(Java_ChannelUID(uid))
         if channel is None:
             raise NotInitialisedException("Channel {} not found".format(uid))
-        return Channel(channel)
+        return channel
 
     @staticmethod
     def getItemMetadata(item_or_item_name, namespace):
@@ -481,14 +452,14 @@ class Registry():
                 raise NotInitialisedException("Item state for {} not found".format(item_name))
             if default is not None and java.instanceof(state, Java_UnDefType):
                 state = default
-            return JavaConversionHelper.convertState(state)
+            return state
         raise Exception("Unsupported parameter type {}".format(type(item_name)))
 
     @staticmethod
     def getItem(item_name):
         if isinstance(item_name, str):
             try:
-                return Item(ITEM_REGISTRY.getItem(item_name))
+                return ITEM_REGISTRY.getItem(item_name)
             except ItemNotFoundException:
                 raise NotInitialisedException("Item {} not found".format(item_name))
         raise Exception("Unsupported parameter type {}".format(type(item_name)))
@@ -502,7 +473,7 @@ class Registry():
     @staticmethod
     def addItem(item_config):
         item = Registry._createItem(item_config)
-        ITEM_REGISTRY.add(item.raw_item)
+        ITEM_REGISTRY.add(item)
 
         return Registry.getItem(item_config['name'])
 
@@ -543,7 +514,7 @@ class Registry():
                 builder = builder.withGroupFunction(item_config['groupFunction'])
 
             item = builder.build()
-            return Item(item)
+            return item
         except Exception as e:
             logger.error('Failed to create Item: {}'.format(e))
             raise

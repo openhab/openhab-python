@@ -432,9 +432,9 @@ from openhab import Registry
 
 | Function                 | Usage                                                                                 | Return Value                                                                                        |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| getThings                | getThings()                                                                           | Array of [Thing](#class-thing)                                                                      |
-| getThing                 | getThing(uid)                                                                         | [Thing](#class-thing)                                                                               |
-| getChannel               | getChannel(uid)                                                                       | [Channel](#class-channel)                                                                           |
+| getThings                | getThings()                                                                           | Array of [openHAB Things](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/thing)      |
+| getThing                 | getThing(uid)                                                                         | [openHAB Thing](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/thing)                |
+| getChannel               | getChannel(uid)                                                                       | [openHAB Channel](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/channel)            |
 | getItemMetadata          | getItemMetadata(item_or_item_name, namespace)                                         | [openHAB Metadata](https://www.openhab.org/javadoc/latest/org/openhab/core/items/metadata)          |
 | setItemMetadata          | setItemMetadata(item_or_item_name, namespace, value, configuration=None)              | [openHAB Metadata](https://www.openhab.org/javadoc/latest/org/openhab/core/items/metadata)          |
 | removeItemMetadata       | removeItemMetadata(item_or_item_name, namespace = None)                               | [openHAB Metadata](https://www.openhab.org/javadoc/latest/org/openhab/core/items/metadata)          |
@@ -481,26 +481,6 @@ There is no need to import this class directly. It is returned as a result of th
 | Function                 | Usage                                                                                 |
 | ------------------------ | ------------------------------------------------------------------------------------- |
 | <...>                    | see [openHAB Semantics API](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/semantics) |
-
-### class Thing 
-
-Thing is a wrapper around [openHAB Thing](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/thing). 
-
-There is no need to import this class directly. It is returned as a result of function calls of the [Registry](#class-registry) class.
-
-| Function                 | Usage                                                                                 |
-| ------------------------ | ------------------------------------------------------------------------------------- |
-| <...>                    | see [openHAB Thing API](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/thing) |
-
-### class Channel 
-
-Channel is a wrapper around [openHAB Channel](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/type/channelgrouptype). 
-
-There is no need to import this class directly. It is returned as a result of function calls of the [Registry](#class-registry) class.
-
-| Function                 | Usage                                                                                 |
-| ------------------------ | ------------------------------------------------------------------------------------- |
-| <...>                    | see [openHAB Channel API](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/type/channelgrouptype) |
 
 ### class Timer 
 
