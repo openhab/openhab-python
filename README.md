@@ -220,8 +220,8 @@ It will wrap and extend the class with the following functionalities
 - Conditions can be added with argument "conditions", with a function called "buildConditions" (only classes) or with an [@onlyif decorator](#decorator-onlyif)
 - The execute function is wrapped within a try / except to provide meaningful error logs
 - A logger object (self.logger or {functionname}.logger) with the prefix "org.automation.pythonscripting.{filename}.{function_or_classname}" is available
-- You can enable a profiler to analyze runtime with argument "profile=1"
-- Every run is logging total runtime and trigger reasons
+- You can enable a profiler to analyze runtime with argument `profiler_enabled=True`
+- Every run is logging total runtime and trigger reasons. This can be disabled with argument `runtime_measurement=False`
 
 ```python
 from openhab import rule
@@ -455,7 +455,7 @@ There is no need to import this class directly. It is returned as a result of fu
 | getPersistence           | \<obj\>.getPersistence(service_id = None)                                             | [ItemPersistence](#class-itempersistence)                                                           |
 | getSemantic              | \<obj\>.getSemantic()                                                                 | [ItemSemantic](#class-itemsemantic)                                                                 |
 | getMetadata              | \<obj\>.getMetadata()                                                                 | [ItemMetadata](#class-itemmetadata)                                                                 |
-| @static buildSafeItemName| Item.buildSafeItemName(item_name)                                                     | Escaped string                                                                                      |
+| @static buildSafeName    | Item.buildSafeName(item_name)                                                         | Escaped string                                                                                      |
 | <...>                    | see [openHAB Item API](https://www.openhab.org/javadoc/latest/org/openhab/core/items/item) |                                                                                                |
 
 ### class ItemPersistence 

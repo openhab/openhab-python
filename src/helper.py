@@ -76,13 +76,14 @@ class NotInitialisedException(Exception):
     pass
 
 class rule():
-    def __init__(self, name=None, description=None, tags=None, triggers=None, conditions=None, profile=None):
+    def __init__(self, name=None, description=None, tags=None, triggers=None, conditions=None, runtime_measurement=True, profiler_enabled=False):
         self.name = name
         self.description = description
         self.tags = tags
         self.triggers = triggers
         self.conditions = conditions
-        self.profile = profile
+        self.runtime_measurement = runtime_measurement
+        self.profiler_enabled = profiler_enabled
 
     def __call__(self, clazz_or_function):
         proxy = self
@@ -174,7 +175,7 @@ class rule():
             start_time = time.perf_counter()
 
             # *** execute
-            if self.profile:
+            if self.profiler_enabled:
                 pr = profile.Profile()
 
                 #self.logger.debug(str(getItem("Lights")))
@@ -190,7 +191,7 @@ class rule():
                 else:
                     status = rule_obj.execute(module, input)
 
-            if self.profile:
+            if self.profiler_enabled:
                 #pr.disable()
                 s = io.StringIO()
                 #http://www.jython.org/docs/library/profile.html#the-stats-class
@@ -199,7 +200,7 @@ class rule():
 
                 rule_obj.logger.info(s.getvalue())
 
-            if status is None or status is True:
+            if ( status is None or status is True ) and self.runtime_measurement:
                 elapsed_time = round( ( time.perf_counter() - start_time ) * 1000, 1 )
 
                 try:
@@ -284,7 +285,7 @@ class Item(JavaConversionWrapper):
         return ItemMetadata(self)
 
     @staticmethod
-    def buildSafeItemName(s):
+    def buildSafeName(s):
         # Remove quotes and replace non-alphanumeric with underscores
         return ''.join([c if c.isalnum() else '_' for c in s.replace('"', '').replace("'", '')])
 
@@ -474,7 +475,7 @@ class Registry():
         if 'name' not in item_config or 'type' not in item_config:
             raise Exception('item_config.name or item_config.type not set')
 
-        item_config['name'] = Item.buildSafeItemName(item_config['name'])
+        item_config['name'] = Item.buildSafeName(item_config['name'])
 
         base_item = None
         if item_config['type'] == 'Group' and 'giBaseType' in item_config:
