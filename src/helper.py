@@ -1,17 +1,13 @@
-import java
+from polyglot import ForeignNone, interop_type
 
+import java
+import os
 import time
 import threading
-import profile, pstats, io
-from datetime import datetime, timedelta
-
-import os
 import traceback
+import profile, pstats, io
 from inspect import isfunction
-
-import scope
-
-from scope import RuleSupport, osgi#, RuleSimple
+from datetime import datetime, timedelta
 
 from openhab.jsr223 import TopCallStackFrame
 from openhab.services import getService
@@ -31,31 +27,17 @@ from org.openhab.core.persistence import HistoricItem as Java_HistoricItem
 
 from org.openhab.core.items import ItemNotFoundException
 
-from polyglot import ForeignNone, interop_type
-
 from java.time import ZonedDateTime as Java_ZonedDateTime, Instant as Java_Instant
 from java.lang import Object as Java_Object, Iterable as Java_Iterable
 
+from scope import RuleSupport, osgi#, RuleSimple
+import scope
+
 METADATA_REGISTRY = getService("org.openhab.core.items.MetadataRegistry")
-
 ITEM_BUILDER_FACTORY = getService("org.openhab.core.items.ItemBuilderFactory")
-
-ITEM_REGISTRY     = scope.itemRegistry
-STATE_REGISTRY    = scope.items
-THING_REGISTRY    = scope.things
-
-EVENT_BUS         = scope.events
-
-#scriptExtension   = scope.scriptExtension
-
-AUTOMATION_MANAGER = RuleSupport.automationManager
-LIFECYCLE_TRACKER = scope.lifecycleTracker
-
-DYNAMIC_ITEM_TAG = "_DYNAMIC_"
 
 def versiontuple(v):
     return tuple(map(int, (v.split("."))))
-
 BUNDLE_VERSION = versiontuple(".".join(osgi.bundleContext.getBundle().getVersion().toString().split(".")[:3]))
 
 # **** LOGGING ****
@@ -125,9 +107,9 @@ class rule():
             def execute(self, module, input):
                 proxy.executeWrapper(rule_obj, rule_isfunction, module, input)
 
-        base_rule_obj = BaseSimpleRule()
-
         name = "{}.{}".format(NAME_PREFIX, clazz_or_function.__name__) if proxy.name is None else proxy.name
+
+        base_rule_obj = BaseSimpleRule()
         base_rule_obj.setName(name)
 
         if proxy.description is not None:
@@ -144,7 +126,7 @@ class rule():
             if len(raw_conditions) > 0:
                 base_rule_obj.setConditions(raw_conditions)
 
-            rule = AUTOMATION_MANAGER.addRule(base_rule_obj)
+            rule = RuleSupport.automationManager.addRule(base_rule_obj)
 
             if BUNDLE_VERSION < versiontuple("5.0.0"):
                 actionConfiguration = rule.getActions().get(0).getConfiguration()
@@ -193,11 +175,6 @@ class rule():
         except:
             rule_obj.logger.error("Rule execution failed:\n" + traceback.format_exc())
 
-#@interop_type(Java_DateTimeType)
-#class DateTimeType():
-#    def getDatetime(self):
-#        return self.getZonedDateTime()
-
 @interop_type(Java_State)
 @interop_type(Java_Thing)
 @interop_type(Java_Channel)
@@ -231,7 +208,7 @@ class JavaConversionWrapper():
 @interop_type(Java_Item)
 class Item(JavaConversionWrapper):
     def postUpdate(self, state):
-        EVENT_BUS.postUpdate(self, Item._toOpenhabPrimitiveType(state))
+        scope.events.postUpdate(self, Item._toOpenhabPrimitiveType(state))
 
     def postUpdateIfDifferent(self, state):
         if not Item._checkIfDifferent(self.getState(), state):
@@ -241,7 +218,7 @@ class Item(JavaConversionWrapper):
         return True
 
     def sendCommand(self, command):
-        EVENT_BUS.sendCommand(self, Item._toOpenhabPrimitiveType(command))
+        scope.events.sendCommand(self, Item._toOpenhabPrimitiveType(command))
 
     def sendCommandIfDifferent(self, command):
         if not Item._checkIfDifferent(self.getState(), command):
@@ -354,11 +331,8 @@ class ItemPersistence(JavaConversionWrapper):
         current_end_time = datetime.now().astimezone() if end_time is None else end_time
         min_time = current_end_time - timedelta(seconds=time_slot)
 
-        min_value = None
-        max_value = None
-
-        value = 0.0
-        duration = 0
+        min_value = max_value = None
+        value = duration = 0.0
 
         entry = self.persistedState(current_end_time)
 
@@ -373,7 +347,6 @@ class ItemPersistence(JavaConversionWrapper):
 
             if min_value == None or min_value > _value:
                 min_value = _value
-
             if max_value == None or max_value < _value:
                 max_value = _value
 
@@ -381,15 +354,12 @@ class ItemPersistence(JavaConversionWrapper):
             value = value + ( _value * _duration )
 
             current_end_time = currentStartTime - timedelta(microseconds=1)
-
             if current_end_time < min_time:
                 break
 
             entry = self.persistedState(current_end_time)
 
-        value = ( value / duration )
-
-        return [ Java_DecimalType(value), Java_DecimalType(min_value), Java_DecimalType(max_value) ]
+        return [ Java_DecimalType(value / duration), Java_DecimalType(min_value), Java_DecimalType(max_value) ]
 
     def getStableState(self, time_slot, end_time = None):
         value, _, _ = self.getStableMinMaxState(time_slot, end_time)
@@ -398,18 +368,18 @@ class ItemPersistence(JavaConversionWrapper):
 class Registry():
     @staticmethod
     def getThings():
-        return THING_REGISTRY.getAll()
+        return scope.things.getAll()
 
     @staticmethod
     def getThing(uid):
-        thing = THING_REGISTRY.get(Java_ThingUID(uid))
+        thing = scope.things.get(Java_ThingUID(uid))
         if thing is None:
             raise NotInitialisedException("Thing {} not found".format(uid))
         return thing
 
     @staticmethod
     def getChannel(uid):
-        channel = THING_REGISTRY.getChannel(Java_ChannelUID(uid))
+        channel = scope.things.getChannel(Java_ChannelUID(uid))
         if channel is None:
             raise NotInitialisedException("Channel {} not found".format(uid))
         return channel
@@ -417,7 +387,7 @@ class Registry():
     @staticmethod
     def getItemState(item_name, default = None):
         if isinstance(item_name, str):
-            state = STATE_REGISTRY.get(item_name)
+            state = scope.items.get(item_name)
             if state is None:
                 raise NotInitialisedException("Item state for {} not found".format(item_name))
             if default is not None and java.instanceof(state, Java_UnDefType):
@@ -429,7 +399,7 @@ class Registry():
     def getItem(item_name):
         if isinstance(item_name, str):
             try:
-                return ITEM_REGISTRY.getItem(item_name)
+                return scope.itemRegistry.getItem(item_name)
             except ItemNotFoundException:
                 raise NotInitialisedException("Item {} not found".format(item_name))
         raise Exception("Unsupported parameter type {}".format(type(item_name)))
@@ -443,7 +413,7 @@ class Registry():
     @staticmethod
     def addItem(item_config):
         item = Registry._createItem(item_config)
-        ITEM_REGISTRY.add(item)
+        scope.itemRegistry.add(item)
         return Registry.getItem(item_config['name'])
 
     @staticmethod
@@ -461,7 +431,7 @@ class Registry():
 
         if 'tags' not in item_config:
             item_config['tags'] = []
-        item_config['tags'].append(DYNAMIC_ITEM_TAG)
+        item_config['tags'].append("_DYNAMIC_")
 
         try:
             builder = ITEM_BUILDER_FACTORY.newItemBuilder(item_config['type'], item_config['name']) \
@@ -543,7 +513,6 @@ class Timer(threading.Timer):
     def start(self):
         if self.is_alive():
             return
-        #log.info("timer started")
         Timer.activeTimer.append(self)
         super().start()
 
@@ -553,4 +522,4 @@ class Timer(threading.Timer):
         Timer.activeTimer.remove(self)
         super().cancel()
 
-LIFECYCLE_TRACKER.addDisposeHook(Timer._clean)
+scope.lifecycleTracker.addDisposeHook(Timer._clean)
