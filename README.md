@@ -207,7 +207,7 @@ class Test:
         self.logger.info("Rule was triggered")
 ```
 
-### Check if state is NULL or UNDEF
+### Item state check for NULL or UNDEF
 
 ```python
 from openhab import Registry
