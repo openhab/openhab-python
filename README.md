@@ -233,7 +233,7 @@ It will wrap and extend the class with the following functionalities
 - Triggers can be added with argument "triggers=", a function "buildTriggers" or with an [@when decorator](#decorator-when)
 - Conditions can be added with argument "conditions=", a function "buildConditions" or with an [@onlyif decorator](#decorator-onlyif)
 - The execute function is wrapped within a try / except to provide meaningful error logs
-- A logger object `self.logger` or `{functionname}.logger)`, prefixed with "org.automation.pythonscripting.{filename}.{function_or_classname}" is available
+- A logger object `self.logger` or `{functionname}.logger)`, prefixed with "org.automation.pythonscripting.{filename}.{function_or_classname}", is available
 - You can enable a profiler to analyze runtime with argument `profile_code=True`
 - Every run is logging total runtime and trigger reasons. This can be disabled with argument `runtime_measurement=False`
 
