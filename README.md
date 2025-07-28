@@ -230,8 +230,8 @@ It will wrap and extend the class with the following functionalities
 
 - Register the class or function as a rule
 - If name is not provided, a fallback name in the form "{filename}.{function_or_classname}" is created
-- Triggers can be added with argument "triggers", with a function called "buildTriggers" (only classes) or with an [@when decorator](#decorator-when)
-- Conditions can be added with argument "conditions", with a function called "buildConditions" (only classes) or with an [@onlyif decorator](#decorator-onlyif)
+- Triggers can be added with argument "triggers=", a function "buildTriggers" or with an [@when decorator](#decorator-when)
+- Conditions can be added with argument "conditions=", a function "buildConditions" or with an [@onlyif decorator](#decorator-onlyif)
 - The execute function is wrapped within a try / except to provide meaningful error logs
 - A logger object (self.logger or {functionname}.logger) with the prefix "org.automation.pythonscripting.{filename}.{function_or_classname}" is available
 - You can enable a profiler to analyze runtime with argument `profile_code=True`
@@ -242,9 +242,17 @@ from openhab import rule
 from openhab.triggers import GenericCronTrigger
 
 @rule( triggers = [ GenericCronTrigger("*/5 * * * * ?") ] )
-class Test:
+class Test1:
     def execute(self, module, input):
-        self.logger.info("Rule 3 was triggered")
+        self.logger.info("Test1 was triggered")
+
+@rule()
+class Test2:
+    def buildTriggers(self):
+        return [ GenericCronTrigger("*/5 * * * * ?") ]
+
+    def execute(self, module, input):
+        self.logger.info("Test2 triggered")
 ```
 
 ```
