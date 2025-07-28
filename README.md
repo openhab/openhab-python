@@ -260,7 +260,7 @@ class Test2:
 2025-01-09 09:35:15.472 [INFO ] [tomation.pythonscripting.demo1.Test1] - Rule executed in    0.1 ms [Other: TimerEvent]
 ```
 
-**'execute'** callback **'input'** parameter
+**`execute`** callback **`input`** parameter
 
 Depending on which trigger type is used, corresponding [event objects](https://www.openhab.org/javadoc/latest/org/openhab/core/items/events/itemevent) are passed via the "input" parameter
 
