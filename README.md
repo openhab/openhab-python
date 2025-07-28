@@ -209,13 +209,15 @@ class Test:
 
 ### Item state check for NULL or UNDEF
 
+The following checks for `NULL` and `UNDEF`. Both are enum values of `scope.UnDefType`.
+
 ```python
 from openhab import Registry
 
 import scope
 
 state = Registry.getItemState("Item1")
-if state is not None and !isinstance(state, scope.UnDefType):
+if !isinstance(state, scope.UnDefType):
     print("STATE: " + str(state))
 ```
 
