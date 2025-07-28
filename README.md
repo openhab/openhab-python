@@ -456,7 +456,7 @@ from openhab import Registry
 
 ### class Item 
 
-Item is a wrapper around [openHAB Item](https://www.openhab.org/javadoc/latest/org/openhab/core/items/item) with additional functionality.
+Item is a subclass of [openHAB Item](https://www.openhab.org/javadoc/latest/org/openhab/core/items/item) with additional functionality.
 
 There is no need to import this class directly. It is returned as a result of function calls of the [Registry](#class-registry) class.
 
