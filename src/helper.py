@@ -12,20 +12,16 @@ from datetime import datetime, timedelta
 from openhab.jsr223 import TopCallStackFrame
 from openhab.services import getService
 
-from org.openhab.core.items import MetadataKey as Java_MetadataKey, Metadata as Java_Metadata
-
 from org.openhab.core.thing import Thing as Java_Thing, Channel as Java_Channel, ChannelUID as Java_ChannelUID, ThingUID as Java_ThingUID
 from org.openhab.core.automation.module.script.rulesupport.shared.simple import SimpleRule as Java_SimpleRule
 from org.openhab.core.persistence.extensions import PersistenceExtensions as Java_PersistenceExtensions
 from org.openhab.core.model.script.actions import Semantics as Java_Semantics
 
-from org.openhab.core.items import Item as Java_Item
+from org.openhab.core.items import Item as Java_Item, MetadataKey as Java_MetadataKey, Metadata as Java_Metadata, ItemNotFoundException
 from org.openhab.core.types import State as Java_State, PrimitiveType as Java_PrimitiveType, UnDefType as Java_UnDefType
 from org.openhab.core.library.types import DecimalType as Java_DecimalType, UpDownType as Java_UpDownType, PercentType as Java_PercentType, DateTimeType as Java_DateTimeType
 
 from org.openhab.core.persistence import HistoricItem as Java_HistoricItem
-
-from org.openhab.core.items import ItemNotFoundException
 
 from java.time import ZonedDateTime as Java_ZonedDateTime, Instant as Java_Instant
 from java.lang import Object as Java_Object, Iterable as Java_Iterable
@@ -213,7 +209,6 @@ class Item(JavaConversionWrapper):
     def postUpdateIfDifferent(self, state):
         if not Item._checkIfDifferent(self.getState(), state):
             return False
-
         self.postUpdate(state)
         return True
 
@@ -223,9 +218,7 @@ class Item(JavaConversionWrapper):
     def sendCommandIfDifferent(self, command):
         if not Item._checkIfDifferent(self.getState(), command):
             return False
-
         self.sendCommand(command)
-
         return True
 
     def getPersistence(self, service_id = None):
@@ -481,16 +474,13 @@ class Timer(threading.Timer):
             max_count = old_timer.max_count
 
         max_count = max_count - 1
-
         if max_count == 0:
             callback(*args, **kwargs)
-
             return None
 
         timer = Timer(duration, callback, args, kwargs )
         timer.start()
         timer.max_count = max_count
-
         return timer
 
     def __init__(self, duration, callback, args=[], kwargs={}):
