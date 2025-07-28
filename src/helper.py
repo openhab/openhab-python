@@ -160,42 +160,33 @@ class rule():
 
         return rule_obj
 
-    def appendEventDetailInfo(self, event):
-        if event.getType().startswith("Item"):
-            return " [Item: {}]".format(event.getItemName())
-        elif event.getType().startswith("Group"):
-            return " [Group: {}]".format(event.getItemName())
-        elif event.getType().startswith("Thing"):
-            return " [Thing: {}]".format(event.getThingUID())
-        else:
-            return " [Other: {}]".format(event.getType())
-
     def executeWrapper(self, rule_obj, rule_isfunction, module, input):
         try:
             start_time = time.perf_counter()
 
-            # *** execute
             if self.profile_code:
                 pr = profile.Profile()
                 pr.runctx('func(module, input)', {'module': module, 'input': input, 'func': rule_obj if rule_isfunction else rule_obj.execute }, {})
-
-                #pr.disable()
                 s = io.StringIO()
-                #http://www.jython.org/docs/library/profile.html#the-stats-class
                 ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
                 ps.print_stats()
-
                 rule_obj.logger.info(s.getvalue())
             else:
                 rule_obj(module, input) if rule_isfunction else rule_obj.execute(module, input)
 
             if self.runtime_measurement:
-                elapsed_time = round( ( time.perf_counter() - start_time ) * 1000, 1 )
                 try:
-                    msg_details = self.appendEventDetailInfo(input['event'])
+                    if input['event'].getType().startswith("Item"):
+                        msg_details = " [Item: {}]".format(input['event'].getItemName())
+                    elif input['event'].getType().startswith("Group"):
+                        msg_details = " [Group: {}]".format(input['event'].getItemName())
+                    elif input['event'].getType().startswith("Thing"):
+                        msg_details = " [Thing: {}]".format(input['event'].getThingUID())
+                    else:
+                        msg_details = " [Other: {}]".format(input['event'].getType())
                 except KeyError:
                     msg_details = ""
-                rule_obj.logger.info("Rule executed in " + "{:6.1f}".format(elapsed_time) + " ms" + msg_details)
+                rule_obj.logger.info("Rule executed in " + "{:6.1f}".format(round( ( time.perf_counter() - start_time ) * 1000, 1 )) + " ms" + msg_details)
 
         except NotInitialisedException as e:
             rule_obj.logger.warn("Rule skipped: " + str(e) + " \n" + traceback.format_exc())
