@@ -177,21 +177,8 @@ class rule():
             # *** execute
             if self.profile_code:
                 pr = profile.Profile()
+                pr.runctx('func(module, input)', {'module': module, 'input': input, 'func': rule_obj if rule_isfunction else rule_obj.execute }, {})
 
-                #self.logger.debug(str(getItem("Lights")))
-                #pr.enable()
-                if rule_isfunction:
-                    pr.runctx('func(module, input)', {'module': module, 'input': input, 'func': rule_obj }, {})
-                else:
-                    pr.runctx('func(self, module, input)', {'self': rule_obj, 'module': module, 'input': input, 'func': rule_obj.execute }, {})
-                status = None
-            else:
-                if rule_isfunction:
-                    status = rule_obj(module, input)
-                else:
-                    status = rule_obj.execute(module, input)
-
-            if self.profile_code:
                 #pr.disable()
                 s = io.StringIO()
                 #http://www.jython.org/docs/library/profile.html#the-stats-class
@@ -199,18 +186,16 @@ class rule():
                 ps.print_stats()
 
                 rule_obj.logger.info(s.getvalue())
+            else:
+                rule_obj(module, input) if rule_isfunction else rule_obj.execute(module, input)
 
-            if ( status is None or status is True ) and self.runtime_measurement:
+            if self.runtime_measurement:
                 elapsed_time = round( ( time.perf_counter() - start_time ) * 1000, 1 )
-
                 try:
                     msg_details = self.appendEventDetailInfo(input['event'])
                 except KeyError:
                     msg_details = ""
-
-                msg = "Rule executed in " + "{:6.1f}".format(elapsed_time) + " ms" + msg_details
-
-                rule_obj.logger.info(msg)
+                rule_obj.logger.info("Rule executed in " + "{:6.1f}".format(elapsed_time) + " ms" + msg_details)
 
         except NotInitialisedException as e:
             rule_obj.logger.warn("Rule skipped: " + str(e) + " \n" + traceback.format_exc())
