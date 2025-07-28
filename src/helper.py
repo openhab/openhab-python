@@ -76,14 +76,14 @@ class NotInitialisedException(Exception):
     pass
 
 class rule():
-    def __init__(self, name=None, description=None, tags=None, triggers=None, conditions=None, runtime_measurement=True, profiler_enabled=False):
+    def __init__(self, name=None, description=None, tags=None, triggers=None, conditions=None, runtime_measurement=True, profile_code=False):
         self.name = name
         self.description = description
         self.tags = tags
         self.triggers = triggers
         self.conditions = conditions
         self.runtime_measurement = runtime_measurement
-        self.profiler_enabled = profiler_enabled
+        self.profile_code = profile_code
 
     def __call__(self, clazz_or_function):
         proxy = self
@@ -175,7 +175,7 @@ class rule():
             start_time = time.perf_counter()
 
             # *** execute
-            if self.profiler_enabled:
+            if self.profile_code:
                 pr = profile.Profile()
 
                 #self.logger.debug(str(getItem("Lights")))
@@ -191,7 +191,7 @@ class rule():
                 else:
                     status = rule_obj.execute(module, input)
 
-            if self.profiler_enabled:
+            if self.profile_code:
                 #pr.disable()
                 s = io.StringIO()
                 #http://www.jython.org/docs/library/profile.html#the-stats-class

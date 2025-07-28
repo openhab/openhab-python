@@ -207,6 +207,18 @@ class Test:
         self.logger.info("Rule was triggered")
 ```
 
+### Check if state is NULL or UNDEF
+
+```python
+from openhab import Registry
+
+import scope
+
+state = Registry.getItemState("Item1")
+if state is not None and !isinstance(state, scope.UNDEF):
+    print("STATE: " + str(state))
+```
+
 ## Decorators
 
 ### decorator @rule
@@ -220,7 +232,7 @@ It will wrap and extend the class with the following functionalities
 - Conditions can be added with argument "conditions", with a function called "buildConditions" (only classes) or with an [@onlyif decorator](#decorator-onlyif)
 - The execute function is wrapped within a try / except to provide meaningful error logs
 - A logger object (self.logger or {functionname}.logger) with the prefix "org.automation.pythonscripting.{filename}.{function_or_classname}" is available
-- You can enable a profiler to analyze runtime with argument `profiler_enabled=True`
+- You can enable a profiler to analyze runtime with argument `profile_code=True`
 - Every run is logging total runtime and trigger reasons. This can be disabled with argument `runtime_measurement=False`
 
 ```python
