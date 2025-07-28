@@ -158,7 +158,7 @@ logger.info( historicItem.getState().toString() );
 
 ### Using scope
 
-Simple usage of jsr223 scope objects
+Simple usage of [jsr223 scope objects](https://www.openhab.org/docs/configuration/jsr223.html#default-preset-importpreset-not-required)
 
 ```python
 from openhab import Registry
@@ -215,7 +215,7 @@ from openhab import Registry
 import scope
 
 state = Registry.getItemState("Item1")
-if state is not None and !isinstance(state, scope.UNDEF):
+if state is not None and !isinstance(state, scope.UnDefType):
     print("STATE: " + str(state))
 ```
 
