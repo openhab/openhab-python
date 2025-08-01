@@ -627,3 +627,27 @@ The following python data types are transparently converted to their native java
 During a function call like `getItem("test").getPersistence().changedSince(datetime.now())`, the datetime is converted to a `ZonedDateTime` object
 
 Or during a function call like `getItem("test").postUpdate(datetime.now())`, the datetime is converted to a `DateTimeType` object
+
+## Typical log errors
+
+### TypeError, invalid instantiation of foreign object
+
+```
+2025-08-01 15:10:39.528 [ERROR] [b.automation.pythonscripting.test.py] - TypeError, invalid instantiation of foreign object
+Traceback (most recent call last):
+```
+
+One of your function parameter does not match the required value type.
+
+Check the related API documentation to confirm the requirements.
+
+### AttributeError, One of your function parameters does not match ...
+
+```
+2025-08-01 15:10:39.528 [ERROR] [b.automation.pythonscripting.test.py] - AttributeError, One of your function parameters does not match the required value type. Check the openHAB API documentation to confirm correct value type.
+Traceback (most recent call last):
+```
+
+One of your function parameter does not match the required value type.
+
+Check the related API documentation to confirm the requirements.
