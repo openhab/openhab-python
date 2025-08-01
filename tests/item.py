@@ -1,5 +1,5 @@
 from openhab import Registry
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from org.openhab.core.items import Item as Java_Item
 
@@ -43,6 +43,11 @@ except AttributeError:
 # Check success
 item.getPersistence().changedSince(datetime.now().astimezone())
 item.getPersistence().changedSince(datetime.now())
+
+# Check success
+endDate = datetime.now()
+startDate = endDate - timedelta(days=2)
+item.getPersistence().getAllStatesBetween(startDate, endDate)
 
 # Check bool
 test = item.getSemantic().isLocation()
