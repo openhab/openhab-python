@@ -11,11 +11,10 @@ def __import_wrapper__():
 
     importOrg = builtins.__import__
 
-    class WrappedException(Exception):
-        def __init__(self, exception, skip):
-            self.exception = exception
-            self.skip = skip
-    traceback.__wrapped_exception__ = WrappedException
+    def wrapHelperException(exception, skip):
+        exception.__wrapHelperExceptionTraceSkip = skip
+        return exception
+    traceback.__wrapHelperException__ = wrapHelperException
 
     class Module(types.ModuleType):
         def __init__(self, name, modules):
@@ -30,7 +29,7 @@ def __import_wrapper__():
         if modules:
             return Module(name, modules)
         msg = "No module named '{}{}'".format(name, '.' + '|'.join(fromlist) if fromlist else "")
-        raise WrappedException(ModuleNotFoundError(msg), 2)
+        raise wrapHelperException(ModuleNotFoundError(msg), 2)
 
     def getImportProxy():
         depth = 1
@@ -52,7 +51,7 @@ def __import_wrapper__():
                 try:
                     modules[_name.split(".")[-1]] = java.type(_name)
                 except KeyError as e:
-                    raise WrappedException(ModuleNotFoundError("Class '{}' not found".format(_name)), 1)
+                    raise wrapHelperException(ModuleNotFoundError("Class '{}' not found".format(_name)), 1)
             return processModules(name, fromlist, modules)
         if name.startswith("scope"):
             modules = importProxy(name, fromlist)
@@ -65,10 +64,8 @@ def __import_wrapper__():
         for _tb in traceback.extract_tb(tb):
             _tb_r.append(_tb)
 
-        if isinstance(excvalue, WrappedException):
-            _tb_r = _tb_r [0:(excvalue.skip*-1)]
-            excvalue = excvalue.exception
-            exctype = excvalue.__class__
+        if hasattr(excvalue, "__wrapHelperExceptionTraceSkip"):
+            _tb_r = _tb_r [0:(excvalue.__wrapHelperExceptionTraceSkip*-1)]
 
         result_r = []
         result_r.append("{}, {}".format(exctype.__name__, excvalue))
@@ -85,5 +82,5 @@ def __import_wrapper__():
     @interop_type(Java_Object)
     class CustomForeignClass:
         def __getattr__(self, name):
-            raise WrappedException(AttributeError("Java instance of '{}' has no attribute '{}'".format(self.getClass(), name)), 1)
+            raise wrapHelperException(AttributeError("Java instance of '{}' has no attribute '{}'".format(self.getClass(), name)), 1)
 __import_wrapper__()

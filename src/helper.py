@@ -178,7 +178,9 @@ class rule():
 class JavaConversionWrapper():
     def __getattribute__(self, name):
         attr = super().__getattribute__(name)
-        if callable(attr) and name not in ["_getattribute_convert", "_getattribute_callback", "_raise_attribute_exception", "_getattr_callback", "getClass"]:
+        # Java methods never starts with an underscore "_"
+        if callable(attr) and name[0] != "_" and name not in ["getClass"]:
+        #if callable(attr) and name not in ["_getattribute_convert", "_getattribute_callback", "_raise_attribute_exception", "_getattr_callback", "getClass"]:
             return lambda *args, **kwargs: self._getattribute_callback( attr, *args )
         return attr
 
@@ -209,7 +211,7 @@ class JavaConversionWrapper():
 
     def _raise_attribute_exception(self, e, skip):
         if str(e) == "invalid instantiation of foreign object":
-            raise traceback.__wrapped_exception__(AttributeError("One of your function parameters does not match the required value type. Check the openHAB API documentation to confirm correct value type."), skip)
+            raise traceback.__wrapHelperException__(AttributeError("One of your function parameters does not match the required value type. Check the openHAB API documentation to confirm correct value type."), skip)
         raise e
 
 @interop_type(Java_Item)
