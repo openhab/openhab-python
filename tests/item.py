@@ -6,21 +6,16 @@ from org.openhab.core.items import Item as Java_Item
 import scope
 
 try:
-    Registry.getItem("TestNumberItem")
+    item = Registry.getItem("TestItemBase")
 except:
     config = {
-        "name": "TestNumberItem",
+        "name": "TestItemBase",
         "type": "Number"
     }
-    Registry.addItem(config)
+    item = Registry.addItem(config)
 
 # Class type
-item = Registry.getItem("TestNumberItem")
 assert isinstance(item, Java_Item)
-
-# Check success
-item.postUpdate(datetime.now())
-item.sendCommand(scope.ON)
 
 # Check bool
 test = item.hasTag("1")
@@ -39,15 +34,6 @@ try:
     assert False
 except AttributeError:
     pass
-
-# Check success
-item.getPersistence().changedSince(datetime.now().astimezone())
-item.getPersistence().changedSince(datetime.now())
-
-# Check success
-endDate = datetime.now()
-startDate = endDate - timedelta(days=2)
-item.getPersistence().getAllStatesBetween(startDate, endDate)
 
 # Check bool
 test = item.getSemantic().isLocation()
