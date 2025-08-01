@@ -598,11 +598,34 @@ class UpdateInfo:
 
 In addition to standard [value type mappings](https://www.graalvm.org/python/docs/#mapping-types-between-python-and-other-languages), the following type mappings are available.
 
-| Python class              | Java class    |
-| ------------------------- | ------------- |
-| datetime                  | ZonedDateTime |
-| datetime                  | Instant       |
-| timedelta                 | Duration      |
-| list                      | List          |
-| list                      | Set           |
-| Item                      | Item          |
+**Java to Python** (Java Interop Types to Python)
+
+The following java data types are transparently converted to their native python data type
+
+| Java class      | Python class    |
+| ----------------| --------------- |
+| ZonedDateTime   | datetime        |
+| Instant         | datetime        |
+| Iterateable     | []              |
+| null            | None            |
+
+**Python to Java** (Python to Java Interop Types)
+
+The following python data types are transparently converted to their native java data type, depending on the parameter data type of the called Java function.
+
+| Python class    | Java class          |
+| ----------------| ------------------- |
+| list            | Set                 |
+| timedelta       | Duration            |
+| datetime        | Instant             |
+| datetime        | ZonedDateTime       |
+| datetime        | DateTimeType (State) |
+| boolean         | OnOffType (State)   |
+| number          | DecimalType (State) |
+| string          | StringType (State)  |
+| others          | StringType (State)  |
+| null            | UnDefType.NULL (State) |
+
+During a function call like `getItem("test").getPersistence().changedSince(datetime.now())`, the datetime is converted to a `ZonedDateTime` object
+
+Or during a function call like `getItem("test").postUpdate(datetime.now())`, the datetime is converted to a `DateTimeType` object
