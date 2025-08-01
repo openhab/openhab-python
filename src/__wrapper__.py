@@ -15,6 +15,7 @@ def __import_wrapper__():
         def __init__(self, exception, skip):
             self.exception = exception
             self.skip = skip
+    traceback.__wrapped_exception__ = WrappedException
 
     class Module(types.ModuleType):
         def __init__(self, name, modules):

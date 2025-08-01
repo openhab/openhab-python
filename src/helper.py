@@ -178,11 +178,17 @@ class rule():
 class JavaConversionWrapper():
     def __getattribute__(self, name):
         attr = super().__getattribute__(name)
-        if callable(attr) and name != "_convert":
-            return lambda *args, **kwargs: self._convert( attr(*args) )
+        if callable(attr) and name not in ["_getattribute_convert", "_getattribute_callback", "_raise_attribute_exception", "_getattr_callback", "getClass"]:
+            return lambda *args, **kwargs: self._getattribute_callback( attr, *args )
         return attr
 
-    def _convert(self, value):
+    def _getattribute_callback(self, attr, *args):
+        try:
+            return self._getattribute_convert( attr(*args) )
+        except TypeError as e:
+            self._raise_attribute_exception(e, 3)
+
+    def _getattribute_convert(self, value):
         if java.instanceof(value, Java_ZonedDateTime):
             return datetime.fromisoformat(value.toString().split("[")[0])
 
@@ -192,7 +198,7 @@ class JavaConversionWrapper():
         if java.instanceof(value, Java_Iterable):
             _values = []
             for _value in value:
-                _values.append(self._convert(_value))
+                _values.append(self._getattribute_convert(_value))
             return _values
 
         # convert polyglot.ForeignNone => None
@@ -201,10 +207,15 @@ class JavaConversionWrapper():
 
         return value
 
+    def _raise_attribute_exception(self, e, skip):
+        if str(e) == "invalid instantiation of foreign object":
+            raise traceback.__wrapped_exception__(AttributeError("One of your function parameters does not match the required value type. Check the openHAB API documentation to confirm correct value type."), skip)
+        raise e
+
 @interop_type(Java_Item)
 class Item(JavaConversionWrapper):
     def postUpdate(self, state):
-        scope.events.postUpdate(self, Item._toOpenhabPrimitiveType(state))
+        scope.events.postUpdate(self, state)
 
     def postUpdateIfDifferent(self, state):
         if not Item._checkIfDifferent(self.getState(), state):
@@ -213,7 +224,7 @@ class Item(JavaConversionWrapper):
         return True
 
     def sendCommand(self, command):
-        scope.events.sendCommand(self, Item._toOpenhabPrimitiveType(command))
+        scope.events.sendCommand(self, command)
 
     def sendCommandIfDifferent(self, command):
         if not Item._checkIfDifferent(self.getState(), command):
@@ -234,22 +245,6 @@ class Item(JavaConversionWrapper):
     def buildSafeName(s):
         # Remove quotes and replace non-alphanumeric with underscores
         return ''.join([c if c.isalnum() else '_' for c in s.replace('"', '').replace("'", '')])
-
-    @staticmethod
-    # Insight came from openhab-js. Helper function to convert a JS type to a primitive type accepted by openHAB Core, which often is a string representation of the type.
-    #
-    # Converting any complex type to a primitive type is required to avoid multi-threading issues (as GraalJS does not allow multithreaded access to a script's context),
-    # e.g. when passing objects to persistence, which then persists asynchronously.
-    def _toOpenhabPrimitiveType(value):
-        if value is None:
-            return 'NULL'
-        if java.instanceof(value, Java_UnDefType):
-            return 'UNDEF'
-        if isinstance(value, str) or isinstance(value, int) or isinstance(value, float):
-            return value
-        if isinstance(value, datetime):
-            return value.isoformat()
-        return value.toFullString()
 
     @staticmethod
     def _checkIfDifferent(current_state, new_state):
@@ -306,8 +301,14 @@ class ItemSemantic(JavaConversionWrapper):
     def __getattr__(self, name):
         attr = getattr(Java_Semantics, name)
         if callable(attr):
-            return lambda *args, **kwargs: self._convert( attr(*(tuple([self.item]) + args)) )
+            return lambda *args, **kwargs: self._getattr_callback( attr, *args )
         return attr
+
+    def _getattr_callback(self, attr, *args):
+        try:
+            return self._getattribute_convert( attr(*(tuple([self.item]) + args)) )
+        except TypeError as e:
+            self._raise_attribute_exception(e, 3)
 
 class ItemPersistence(JavaConversionWrapper):
     def __init__(self, item, service_id = None):
@@ -317,8 +318,14 @@ class ItemPersistence(JavaConversionWrapper):
     def __getattr__(self, name):
         attr = getattr(Java_PersistenceExtensions, name)
         if callable(attr):
-            return lambda *args, **kwargs: self._convert( attr(*(tuple([self.item]) + args + tuple([] if self.service_id is None else [self.service_id]))) )
+            return lambda *args, **kwargs: self._getattr_callback( attr, *args )
         return attr
+
+    def _getattr_callback(self, attr, *args):
+        try:
+            return self._getattribute_convert( attr(*(tuple([self.item]) + args + tuple([] if self.service_id is None else [self.service_id]))) )
+        except TypeError as e:
+            self._raise_attribute_exception(e, 3)
 
     def getStableMinMaxState(self, time_slot, end_time = None):
         current_end_time = datetime.now().astimezone() if end_time is None else end_time
