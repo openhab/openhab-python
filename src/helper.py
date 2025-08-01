@@ -1,4 +1,4 @@
-from polyglot import ForeignNone, ForeignExecutable, interop_type
+from polyglot import ForeignNone, interop_type
 
 import java
 import os
@@ -178,7 +178,7 @@ class rule():
 class JavaConversionWrapper():
     def __getattribute__(self, name):
         attr = super().__getattribute__(name)
-        if callable(attr) and type(attr) is ForeignExecutable:
+        if callable(attr) and java.is_function(attr):
             return lambda *args, **kwargs: self._getattribute_callback( attr, *args )
         return attr
 
