@@ -596,9 +596,9 @@ class UpdateInfo:
 
 ### Python <=> Java conversion
 
-In addition to standard [value type mappings](https://www.graalvm.org/python/docs/#mapping-types-between-python-and-other-languages), the following type mappings are available.
+In addition to standard [value type mappings](https://www.graalvm.org/python/docs/#interop-types-to-python), the following type mappings are available.
 
-**Java to Python** (Java Interop Types to Python)
+**Java to Python** ([Java Interop Types to Python](https://www.graalvm.org/python/docs/#interop-types-to-python))
 
 The following java data types are transparently converted to their native python data type
 
@@ -609,7 +609,7 @@ The following java data types are transparently converted to their native python
 | Iterateable     | []              |
 | null            | None            |
 
-**Python to Java** (Python to Java Interop Types)
+**Python to Java** ([Python to Java Interop Types](https://www.graalvm.org/python/docs/#python-to-interop-types))
 
 The following python data types are transparently converted to their native java data type, depending on the parameter data type of the called Java function.
 
