@@ -1,4 +1,4 @@
-from polyglot import ForeignNone, interop_type
+from polyglot import ForeignNone, ForeignExecutable, interop_type
 
 import java
 import os
@@ -178,9 +178,7 @@ class rule():
 class JavaConversionWrapper():
     def __getattribute__(self, name):
         attr = super().__getattribute__(name)
-        # Java methods never starts with an underscore "_"
-        if callable(attr) and name[0] != "_" and name not in ["getClass"]:
-        #if callable(attr) and name not in ["_getattribute_convert", "_getattribute_callback", "_raise_attribute_exception", "_getattr_callback", "getClass"]:
+        if callable(attr) and type(attr) is ForeignExecutable:
             return lambda *args, **kwargs: self._getattribute_callback( attr, *args )
         return attr
 

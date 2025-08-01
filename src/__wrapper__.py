@@ -1,6 +1,8 @@
 def __import_wrapper__():
+    import java
     from polyglot import interop_type
     from java.lang import Object as Java_Object
+    from java.util import HashMap as Java_HashMap
 
     import builtins
     import types
@@ -21,7 +23,7 @@ def __import_wrapper__():
             super().__init__(name)
             self.__all__ = list(modules.keySet() if hasattr(modules, 'keySet') else modules.keys() )
             for k in self.__all__:
-                if hasattr(modules[k], 'getClass') and modules[k].getClass().getName() == "java.util.HashMap":
+                if java.instanceof(modules[k], Java_HashMap):
                     modules[k] = Module(k, modules[k])
                 setattr(self, k, modules[k])
 

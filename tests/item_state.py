@@ -13,6 +13,9 @@ except:
     item = Registry.addItem(config)
 
 # Check success
+state = item.getState()
+
+# Check success
 item.postUpdate(True)
 item.postUpdate(1)
 item.postUpdate(datetime.now())
