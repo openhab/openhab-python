@@ -19,8 +19,9 @@ persistence = item.getPersistence()
 try:
     persistence.changedSince(item)
     assert False
-except AttributeError:
-    pass
+except AttributeError as e:
+    assert str(e) == "One of your function parameters does not match the required value type. Check the openHAB API documentation to confirm correct value type."
+    assert str(e.__traceback__.tb_frame.f_code.co_filename).endswith("item_persistance.py")
 
 # Check success
 persistence.changedSince(datetime.now().astimezone())
