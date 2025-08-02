@@ -529,7 +529,7 @@ from openhab import Timer
 
 ### Threading
 
-Thread or timer objects should be registered in the lifecycleTracker to be cleaned during script unload. Otherwise they will exists forever.
+Thread or timer objects must be registered in the lifecycleTracker to be cleaned during script unload. Otherwise they will exists forever.
 
 ```python
 import scope
