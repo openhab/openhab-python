@@ -467,6 +467,7 @@ class Timer(threading.Timer):
     # could also be solved by storing it in a private cache => https://next.openhab.org/docs/configuration/jsr223.html
     # because Timer & ScheduledFuture are canceled when a private cache is cleaned on unload or refresh
     activeTimer = []
+    cleanupTrackerRegistered = False
 
     @staticmethod
     def _clean():
@@ -510,6 +511,9 @@ class Timer(threading.Timer):
     def start(self):
         if self.is_alive():
             return
+        if not Timer.cleanupTrackerRegistered:
+            scope.lifecycleTracker.addDisposeHook(Timer._clean)
+            Timer.cleanupTrackerRegistered = True
         Timer.activeTimer.append(self)
         super().start()
 
@@ -518,5 +522,3 @@ class Timer(threading.Timer):
             return
         Timer.activeTimer.remove(self)
         super().cancel()
-
-scope.lifecycleTracker.addDisposeHook(Timer._clean)
