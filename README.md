@@ -600,7 +600,7 @@ class UpdateInfo:
 
 The following java data types are transparently converted to their python equivalents.
 
-| Java class      | Python class    |
+| Java class<br/>(function result) | Python class    |
 | ----------------| --------------- |
 | ZonedDateTime   | datetime        |
 | Instant         | datetime        |
@@ -611,7 +611,7 @@ The following java data types are transparently converted to their python equiva
 
 The following python data types are transparently converted to their java equivalents, depending on the required type of the java function arguments.
 
-| Python class    | Java class          |
+| Python class    | Java class<br/>(function argument) |
 | ----------------| ------------------- |
 | list            | Set                 |
 | timedelta       | Duration            |
