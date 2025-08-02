@@ -624,9 +624,9 @@ Python objects, used as function arguments, are transparently converted to their
 | others          | StringType (State)  |
 | null            | UnDefType.NULL (State) |
 
-When you call `getItem("test").getPersistence().changedSince(datetime.now())`, the datetime is converted into a `ZonedDateTime` object
+When you call `getItem("test").getPersistence().changedSince(datetime.now())`, `datetime` is converted into `ZonedDateTime`.
 
-Or when you call `getItem("test").postUpdate(datetime.now())`, the datetime is converted to a `DateTimeType` object
+Or when you call `getItem("test").postUpdate(datetime.now())`, `datetime` is converted into `DateTimeType`.
 
 ## Typical log errors
 
