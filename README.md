@@ -529,15 +529,19 @@ from openhab import Timer
 
 ### Threading
 
-Thread or timer objects which was started by itself should be registered in the lifecycleTracker to be cleaned during script unload.
+Thread or timer objects should be registered in the lifecycleTracker to be cleaned during script unload. Otherwise they will exists forever.
 
 ```python
 import scope
 import threading
 
-class Timer(theading.Timer):
-    def __init__(self, duration, callback):
-        super().__init__(duration, callback)
+class MyCustomTimer(threading.Timer):
+    def __init__(self, duration):
+        super().__init__(duration, self.callback)
+        scope.lifecycleTracker.addDisposeHook(self.shutdown)
+
+    def callback(self):
+        print("timer triggered")
 
     def shutdown(self):
         if not self.is_alive():
@@ -545,16 +549,11 @@ class Timer(theading.Timer):
         self.cancel()
         self.join()
 
-def test():
-    print("timer triggered")
-
-job = Timer(60, test)
+job = MyCustomTimer(5)
 job.start()
-
-scope.lifecycleTracker.addDisposeHook(job.shutdown)
 ```
 
-Timer objects created via `openhab.Timer.createTimeout`, however, automatically register in the disposeHook and are cleaned on script unload.
+Timer objects, created via `openhab.Timer.createTimeout`, are automatically registered in the lifecycleTracker and cleaned on script unload.
 
 ```python
 from openhab import Timer
