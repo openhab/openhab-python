@@ -549,11 +549,11 @@ class MyCustomTimer(threading.Timer):
         self.cancel()
         self.join()
 
-job = MyCustomTimer(5)
+job = MyCustomTimer(60)
 job.start()
 ```
 
-Timer objects, created via `openhab.Timer.createTimeout`, are automatically registered in the lifecycleTracker and cleaned on script unload.
+Timer objects, created via `openhab.Timer.createTimeout`, are registered automatically in the lifecycleTracker.
 
 ```python
 from openhab import Timer
