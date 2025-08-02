@@ -598,7 +598,7 @@ class UpdateInfo:
 
 **Java to Python** (In addition to standard [Java Interop Types to Python](https://www.graalvm.org/python/docs/#interop-types-to-python))
 
-The following java data types are transparently converted to their native python data type
+The following java data types are transparently converted to their python equivalents.
 
 | Java class      | Python class    |
 | ----------------| --------------- |
@@ -609,7 +609,7 @@ The following java data types are transparently converted to their native python
 
 **Python to Java** (In addition to standard [Python to Java Interop Types](https://www.graalvm.org/python/docs/#python-to-interop-types))
 
-The following python data types are transparently converted to their native java data type, depending on the parameter data type of the called Java function.
+The following python data types are transparently converted to their java equivalents, depending on the required type of the java function arguments.
 
 | Python class    | Java class          |
 | ----------------| ------------------- |
@@ -624,9 +624,9 @@ The following python data types are transparently converted to their native java
 | others          | StringType (State)  |
 | null            | UnDefType.NULL (State) |
 
-During a function call like `getItem("test").getPersistence().changedSince(datetime.now())`, the datetime is converted to a `ZonedDateTime` object
+When you call `getItem("test").getPersistence().changedSince(datetime.now())`, the datetime is converted into a `ZonedDateTime` object
 
-Or during a function call like `getItem("test").postUpdate(datetime.now())`, the datetime is converted to a `DateTimeType` object
+Or when you call `getItem("test").postUpdate(datetime.now())`, the datetime is converted to a `DateTimeType` object
 
 ## Typical log errors
 
@@ -644,10 +644,10 @@ Check the related API documentation to confirm the requirements.
 ### AttributeError, One of your function parameters does not match ...
 
 ```
-2025-08-01 15:10:39.528 [ERROR] [b.automation.pythonscripting.test.py] - AttributeError, One of your function parameters does not match the required value type. Check the openHAB API documentation to confirm correct value type.
+2025-08-01 15:10:39.528 [ERROR] [b.automation.pythonscripting.test.py] - AttributeError, One of your function parameters does not match the required value type.
 Traceback (most recent call last):
 ```
 
-One of your function parameter does not match the required value type.
+You are calling a function where the provided parameter does not match the required value type. 
 
 Check the related API documentation to confirm the requirements.

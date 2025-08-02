@@ -209,7 +209,7 @@ class JavaConversionWrapper():
 
     def _raise_attribute_exception(self, e, skip):
         if str(e) == "invalid instantiation of foreign object":
-            raise traceback.__wrapHelperException__(AttributeError("One of your function parameters does not match the required value type. Check the openHAB API documentation to confirm correct value type."), skip)
+            raise traceback.__wrapHelperException__(AttributeError("One of your function parameters does not match the required value type."), skip)
         raise e
 
 @interop_type(Java_Item)
