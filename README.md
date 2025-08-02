@@ -598,7 +598,7 @@ class UpdateInfo:
 
 **Java to Python** (In addition to standard [Java Interop Types to Python](https://www.graalvm.org/python/docs/#interop-types-to-python))
 
-Java objects of function results are transparently converted to their python equivalents.
+Java objects of function results, are transparently converted to their python equivalents.
 
 | Java class<br/>(function result) | Python class    |
 | ----------------| --------------- |
@@ -609,7 +609,7 @@ Java objects of function results are transparently converted to their python equ
 
 **Python to Java** (In addition to standard [Python to Java Interop Types](https://www.graalvm.org/python/docs/#python-to-interop-types))
 
-Python objects as function arguments, are transparently converted to their java equivalents, depending on the required type.
+Python objects, used as function arguments, are transparently converted to their java equivalents, depending on the required type.
 
 | Python class    | Java class<br/>(function argument) |
 | ----------------| ------------------- |
