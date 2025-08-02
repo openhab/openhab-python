@@ -33,7 +33,7 @@ try:
     item.hasTag(1)
     assert False
 except AttributeError as e:
-    assert str(e) == "One of your function parameters does not match the required value type. Check the openHAB API documentation to confirm correct value type."
+    assert str(e) == "One of your function parameters does not match the required value type."
     assert str(e.__traceback__.tb_frame.f_code.co_filename).endswith("item.py")
 
 # Check wrong parameter
@@ -41,7 +41,7 @@ try:
     item.getPersistence().changedSince(item)
     assert False
 except AttributeError as e:
-    assert str(e) == "One of your function parameters does not match the required value type. Check the openHAB API documentation to confirm correct value type."
+    assert str(e) == "One of your function parameters does not match the required value type."
     assert str(e.__traceback__.tb_frame.f_code.co_filename).endswith("item.py")
 
 # Check bool
