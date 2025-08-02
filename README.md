@@ -648,6 +648,6 @@ Check the related API documentation to confirm the requirements.
 Traceback (most recent call last):
 ```
 
-You are calling a function where the provided parameter does not match the required value type. 
+One of your function parameter does not match the required value type.
 
 Check the related API documentation to confirm the requirements.
