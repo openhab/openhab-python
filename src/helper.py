@@ -171,6 +171,41 @@ class rule():
         except:
             rule_obj.logger.error("Rule execution failed:\n" + traceback.format_exc())
 
+#@interop_type(Java_Instant)
+class CustomInstant(datetime):
+    def __getattribute__(self, name):
+        if name == "_year":
+            return super().getYear()
+        if name == "_month":
+            return super().getMonthValue()
+        if name == "_day":
+            return super().getDayOfMonth()
+        if name == "_hour":
+            return super().getHour()
+        if name == "_minute":
+            return super().getMinute()
+        if name == "_second":
+            return super().getSecond()
+        if name == "_microsecond":
+            return int(super().getNano() / 1000)
+        if name == "_tzinfo":
+            return None
+        if name == "_hashcode":
+            return -1
+        if name == "_fold":
+            return 0
+        return super().__getattribute__(name)
+
+    def __hash__(self):
+        return hash(self._getstate())
+
+#@interop_type(Java_ZonedDateTime)
+class CustomDateTime(CustomInstant):
+    def __getattribute__(self, name):
+        if name == "_tzinfo":
+            return timezone(timedelta(seconds=super().getOffset().getTotalSeconds()), super().getZone().getId())
+        return super().__getattribute__(name)
+
 @interop_type(Java_State)
 @interop_type(Java_Thing)
 @interop_type(Java_Channel)
