@@ -7,7 +7,7 @@ import threading
 import traceback
 import profile, pstats, io
 from inspect import isfunction
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 
 from openhab.jsr223 import TopCallStackFrame
 from openhab.services import getService
@@ -190,10 +190,13 @@ class JavaConversionWrapper():
 
     def _getattribute_convert(self, value):
         if java.instanceof(value, Java_ZonedDateTime):
-            return datetime.fromisoformat(value.toString().split("[")[0])
+            microsecond=int(value.getNano() / 1000)
+            tzinfo=timezone(timedelta(seconds=value.getOffset().getTotalSeconds()), value.getZone().getId())
+            return datetime(year=value.getYear(),month=value.getMonthValue(),day=value.getDayOfMonth(),hour=value.getHour(),minute=value.getMinute(),second=value.getSecond(),microsecond=microsecond,tzinfo=tzinfo)
 
         if java.instanceof(value, Java_Instant):
-            return datetime.fromisoformat(value.toString())
+            microsecond=int(value.getNano() / 1000)
+            return datetime(year=value.getYear(),month=value.getMonthValue(),day=value.getDayOfMonth(),hour=value.getHour(),minute=value.getMinute(),second=value.getSecond(),microsecond=microsecond)
 
         if java.instanceof(value, Java_Iterable):
             _values = []
