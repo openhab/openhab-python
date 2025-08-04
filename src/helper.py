@@ -1,4 +1,4 @@
-from polyglot import ForeignNone, interop_type
+from polyglot import ForeignNone, ForeignObject, interop_type
 
 import java
 import os

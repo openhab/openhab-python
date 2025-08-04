@@ -1,5 +1,6 @@
 def __import_wrapper__():
     import java
+
     from polyglot import interop_type, ForeignNone
     from java.lang import Object as Java_Object
     from java.util import HashMap as Java_HashMap
@@ -7,8 +8,6 @@ def __import_wrapper__():
     import builtins
     import types
     import sys
-    import java
-    import os
     import traceback
 
     importOrg = builtins.__import__
@@ -34,9 +33,6 @@ def __import_wrapper__():
         except TypeError as e:
             processTypeError(e, 3)
 
-    # Replace error messages
-    # => old: "AttributeError, foreign object has no attribute 'test'"
-    # => new: "AttributeError, Java instance of 'org.openhab.core.types.UnDefType' has not attribute 'test'"
     @interop_type(Java_Object)
     class CustomForeignClass:
         def __getattribute__(self, name):
