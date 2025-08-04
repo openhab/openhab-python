@@ -12,7 +12,10 @@ from datetime import datetime, timezone, timedelta
 from openhab.jsr223 import TopCallStackFrame
 from openhab.services import getService
 
+from org.openhab.core.config.core import Configuration
+
 from org.openhab.core.thing import ChannelUID as Java_ChannelUID, ThingUID as Java_ThingUID
+from org.openhab.core.thing.link import ItemChannelLink as Java_ItemChannelLink
 from org.openhab.core.automation.module.script.rulesupport.shared.simple import SimpleRule as Java_SimpleRule
 from org.openhab.core.persistence.extensions import PersistenceExtensions as Java_PersistenceExtensions
 from org.openhab.core.model.script.actions import Semantics as Java_Semantics
@@ -221,11 +224,34 @@ class Item():
         self.sendCommand(command)
         return True
 
-    def getBoundThings(self):
+    def getThings(self):
         return ITEM_CHANNEL_LINK_REGISTRY.getBoundThings(self.getName())
 
-    def getBoundChannels(self):
+    def getChannels(self):
+        return list(map(lambda uid: Registry.getChannel(uid.getAsString()), ITEM_CHANNEL_LINK_REGISTRY.getBoundChannels(self.getName())))
+
+    def getChannelUIDs(self):
         return ITEM_CHANNEL_LINK_REGISTRY.getBoundChannels(self.getName())
+
+    def getLinks(self):
+        return ITEM_CHANNEL_LINK_REGISTRY.getLinks(self.getName())
+
+    def link(self, channel_uid, link_config = {}):
+        link = Java_ItemChannelLink(self.getItem(), Java_ChannelUID(channel_uid), Configuration(link_config))
+        links = [l for l in self.getLinks() if l.getLinkedUID().getAsString() == channel_uid]
+        if len(links) > 0:
+            if not links[0].getConfiguration().equals(link.getConfiguration()):
+                ITEM_CHANNEL_LINK_REGISTRY.update(link)
+        else:
+            ITEM_CHANNEL_LINK_REGISTRY.add(link)
+        return link
+
+    def unlink(self, channel_uid):
+        links = [l for l in self.getLinks() if l.getLinkedUID().getAsString() == channel_uid]
+        if len(links) > 0:
+            ITEM_CHANNEL_LINK_REGISTRY.remove(links[0].getUID())
+            return links[0]
+        raise NotInitialisedException("Link {} not found".format(channel_uid))
 
     def getPersistence(self, service_id = None):
         return ItemPersistence(self, service_id)
@@ -381,22 +407,25 @@ class Registry():
         return Registry.getItem(item_or_item_name)
 
     @staticmethod
-    def addItem(item_config):
-        item = Registry._createItem(item_config)
+    def removeItem(item_name):
+        item = Registry.getItem(item_name)
+        scope.itemRegistry.remove(item_name, False)
+        return item
+
+    @staticmethod
+    def addItem(item_name, item_type, item_config = {}):
+        item = Registry._createItem(item_name, item_type, item_config)
         scope.itemRegistry.add(item)
         return Registry.getItem(item_config['name'])
 
     @staticmethod
-    def _createItem(item_config):
-        if 'name' not in item_config or 'type' not in item_config:
-            raise Exception('item_config.name or item_config.type not set')
-
-        item_config['name'] = Item.buildSafeName(item_config['name'])
+    def _createItem(item_name, item_type, item_config = {}):
+        item_name = Item.buildSafeName(item_name)
 
         base_item = None
-        if item_config['type'] == 'Group' and 'giBaseType' in item_config:
-            base_item = ITEM_BUILDER_FACTORY.newItemBuilder(item_config['giBaseType'], item_config['name'] + '_baseItem').build()
-        if item_config['type'] != 'Group':
+        if item_type == 'Group' and 'giBaseType' in item_config:
+            base_item = ITEM_BUILDER_FACTORY.newItemBuilder(item_config['giBaseType'], item_name + '_baseItem').build()
+        if item_type != 'Group':
             item_config['groupFunction'] = None
 
         if 'tags' not in item_config:
@@ -404,7 +433,7 @@ class Registry():
         item_config['tags'].append("_DYNAMIC_")
 
         try:
-            builder = ITEM_BUILDER_FACTORY.newItemBuilder(item_config['type'], item_config['name']) \
+            builder = ITEM_BUILDER_FACTORY.newItemBuilder(item_type, item_name) \
                 .withCategory(item_config.get('category')) \
                 .withLabel(item_config.get('label')) \
                 .withTags(item_config['tags'])

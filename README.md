@@ -460,7 +460,8 @@ from openhab import Registry
 | getItemState             | Registry.getItemState(item_name, default = None)                                      | [openHAB State](https://www.openhab.org/javadoc/latest/org/openhab/core/types/state)                |
 | getItem                  | Registry.getItem(item_name)                                                           | [Item](#class-item)                                                                                 |
 | resolveItem              | Registry.resolveItem(item_or_item_name)                                               | [Item](#class-item)                                                                                 |
-| addItem                  | Registry.addItem(item_config)                                                         | [Item](#class-item)                                                                                 |
+| addItem                  | Registry.addItem(item_name, item_type, item_config = {})                              | [Item](#class-item)                                                                                 |
+| removeItem               | Registry.removeItem(item_name)                                                        | [Item](#class-item)                                                                                 |
 
 ### class Item 
 
@@ -477,8 +478,12 @@ There is no need to import this class directly. It is returned as a result of fu
 | getPersistence           | \<instance\>.getPersistence(service_id = None)                                        | [ItemPersistence](#class-itempersistence)                                                           |
 | getSemantic              | \<instance\>.getSemantic()                                                            | [ItemSemantic](#class-itemsemantic)                                                                 |
 | getMetadata              | \<instance\>.getMetadata()                                                            | [ItemMetadata](#class-itemmetadata)                                                                 |
-| getBoundThings           | \<instance\>.getBoundThings()                                                         | Array of [openHAB Things](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/thing)      |
-| getBoundChannels         | \<instance\>.getBoundChannels()                                                       | Array of [openHAB ChannelUID](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/channeluid) |
+| getThings                | \<instance\>.getThings()                                                              | Array of [openHAB Things](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/thing)      |
+| getChannels              | \<instance\>.getChannels()                                                            | Array of [openHAB Channels](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/channel)  |
+| getChannelUIDs           | \<instance\>.getChannelUIDs()                                                         | Array of [openHAB ChannelUID](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/channeluid) |
+| getLinks                 | \<instance\>.getChannels()                                                            | Array of [openHAB ItemChannelLinks](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/link/itemchannellink) |
+| link                     | \<instance\>.link(channel_uid, link_config = {})                                      | [openHAB ItemChannelLink](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/link/itemchannellink) |
+| unlink                   | \<instance\>.unlink(channel_uid)                                                      | [openHAB ItemChannelLink](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/link/itemchannellink) |
 | buildSafeName            | Item.buildSafeName(item_name)                                                         | Escaped string                                                                                      |
 | <...>                    | see [openHAB Item API](https://www.openhab.org/javadoc/latest/org/openhab/core/items/item) |                                                                                                |
 
