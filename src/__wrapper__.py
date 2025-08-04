@@ -1,6 +1,6 @@
 def __import_wrapper__():
     import java
-    from polyglot import interop_type
+    from polyglot import interop_type, ForeignNone
     from java.lang import Object as Java_Object
     from java.util import HashMap as Java_HashMap
 
@@ -13,11 +13,58 @@ def __import_wrapper__():
 
     importOrg = builtins.__import__
 
+    # **************** CATCH and PREPARE GRAAL EXCEPTIONS *********************
     def wrapHelperException(exception, skip):
         exception.__wrapHelperExceptionTraceSkip = skip
         return exception
-    traceback.__wrapHelperException__ = wrapHelperException
+    def processMissingAttribute(cls, name, skip):
+        raise wrapHelperException(AttributeError("Java instance of '{}' has no attribute '{}'".format(cls, name)), skip)
+    def processTypeError(exception, skip):
+        if str(exception) == "invalid instantiation of foreign object":
+            raise wrapHelperException(AttributeError("One of your function parameters does not match the required value type."), skip)
+        raise exception
 
+    def foreignNoneFallback(self, name):
+        raise wrapHelperException(AttributeError("None object has no attribute '{}'".format(name)), 1)
+    ForeignNone.__getattr__ = foreignNoneFallback
+
+    def getAttributeWrapper(attr, *args):
+        try:
+            return attr(*args)
+        except TypeError as e:
+            processTypeError(e, 3)
+
+    # Replace error messages
+    # => old: "AttributeError, foreign object has no attribute 'test'"
+    # => new: "AttributeError, Java instance of 'org.openhab.core.types.UnDefType' has not attribute 'test'"
+    @interop_type(Java_Object)
+    class CustomForeignClass:
+        def __getattribute__(self, name):
+            attr = super().__getattribute__(name)
+            if callable(attr) and java.is_function(attr):
+                return lambda *args, **kwargs: getAttributeWrapper( attr, *args )
+            return attr
+
+        def __getattr__(self, name):
+            processMissingAttribute(self.getClass(), name, 2)
+
+    class CustomProxyClass():
+        def __init__(self, proxy, callback):
+            self.proxy = proxy
+            self.callback = callback
+
+        def __getattr__(self, name):
+            try:
+                attr = getattr(self.proxy, name)
+                if callable(attr) and java.is_function(attr):
+                    return lambda *args, **kwargs: getAttributeWrapper( attr, *(self.callback(*args)) )
+                return attr
+            except AttributeError as e:
+                processMissingAttribute(self.proxy, name, 2)
+    traceback.__CustomProxyClass__ = CustomProxyClass
+    # **************************************************************************
+
+    # *************** IMPORT WRAPPER *******************************************
     class Module(types.ModuleType):
         def __init__(self, name, modules):
             super().__init__(name)
@@ -60,7 +107,9 @@ def __import_wrapper__():
             return processModules(name, fromlist, modules)
         return importOrg(name, globals, locals, fromlist, level)
     builtins.__import__ = importWrapper
+    # **************************************************************************
 
+    # *************** EXCEPTION HOOK *******************************************
     def excepthook(exctype, excvalue, tb):
         _tb_r = []
         for _tb in traceback.extract_tb(tb):
@@ -77,12 +126,5 @@ def __import_wrapper__():
 
         print("\n".join(result_r), file=sys.stderr)
     sys.excepthook = excepthook
-
-    # Replace error messages
-    # => old: "AttributeError, foreign object has no attribute 'test'"
-    # => new: "AttributeError, Java instance of 'org.openhab.core.types.UnDefType' has not attribute 'test'"
-    @interop_type(Java_Object)
-    class CustomForeignClass:
-        def __getattr__(self, name):
-            raise wrapHelperException(AttributeError("Java instance of '{}' has no attribute '{}'".format(self.getClass(), name)), 1)
+    # **************************************************************************
 __import_wrapper__()

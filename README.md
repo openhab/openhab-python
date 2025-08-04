@@ -603,8 +603,6 @@ Java objects of function results, are transparently converted to their python eq
 | ----------------| --------------- |
 | ZonedDateTime   | datetime        |
 | Instant         | datetime        |
-| Iterateable     | []              |
-| null            | None            |
 
 **Python to Java** (In addition to standard [Python to Java Interop Types](https://www.graalvm.org/python/docs/#python-to-interop-types))
 

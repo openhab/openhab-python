@@ -12,16 +12,14 @@ from datetime import datetime, timezone, timedelta
 from openhab.jsr223 import TopCallStackFrame
 from openhab.services import getService
 
-from org.openhab.core.thing import Thing as Java_Thing, Channel as Java_Channel, ChannelUID as Java_ChannelUID, ThingUID as Java_ThingUID
+from org.openhab.core.thing import ChannelUID as Java_ChannelUID, ThingUID as Java_ThingUID
 from org.openhab.core.automation.module.script.rulesupport.shared.simple import SimpleRule as Java_SimpleRule
 from org.openhab.core.persistence.extensions import PersistenceExtensions as Java_PersistenceExtensions
 from org.openhab.core.model.script.actions import Semantics as Java_Semantics
 
 from org.openhab.core.items import Item as Java_Item, MetadataKey as Java_MetadataKey, Metadata as Java_Metadata, ItemNotFoundException
-from org.openhab.core.types import State as Java_State, PrimitiveType as Java_PrimitiveType, UnDefType as Java_UnDefType
+from org.openhab.core.types import PrimitiveType as Java_PrimitiveType, UnDefType as Java_UnDefType
 from org.openhab.core.library.types import DecimalType as Java_DecimalType, UpDownType as Java_UpDownType, PercentType as Java_PercentType, DateTimeType as Java_DateTimeType
-
-from org.openhab.core.persistence import HistoricItem as Java_HistoricItem
 
 from java.time import ZonedDateTime as Java_ZonedDateTime, Instant as Java_Instant
 from java.lang import Object as Java_Object, Iterable as Java_Iterable
@@ -171,87 +169,39 @@ class rule():
         except:
             rule_obj.logger.error("Rule execution failed:\n" + traceback.format_exc())
 
-#@interop_type(Java_Instant)
-class CustomInstant(datetime):
+@interop_type(Java_Instant)
+class Instant(datetime):
+    def __new__(cls, year, month=None, day=None, hour=0, minute=0, second=0,
+                microsecond=0, tzinfo=None, *, fold=0):
+        return datetime(year=year, month=month, day=day, hour=hour, minute=minute, second=second, microsecond=microsecond, tzinfo=tzinfo, fold=fold)
+
     def __getattribute__(self, name):
-        if name == "_year":
-            return super().getYear()
-        if name == "_month":
-            return super().getMonthValue()
-        if name == "_day":
-            return super().getDayOfMonth()
-        if name == "_hour":
-            return super().getHour()
-        if name == "_minute":
-            return super().getMinute()
-        if name == "_second":
-            return super().getSecond()
-        if name == "_microsecond":
-            return int(super().getNano() / 1000)
-        if name == "_tzinfo":
-            return None
-        if name == "_hashcode":
-            return -1
-        if name == "_fold":
-            return 0
+        #print(name)
+        match name:
+            case "_year": return super().getYear()
+            case "_month": return super().getMonthValue()
+            case "_day": return super().getDayOfMonth()
+            case "_hour": return super().getHour()
+            case "_minute": return super().getMinute()
+            case "_second": return super().getSecond()
+            case "_microsecond": return int(super().getNano() / 1000)
+            case "_tzinfo": return None
+            case "_hashcode": return -1
+            case "_fold": return 0
         return super().__getattribute__(name)
 
     def __hash__(self):
         return hash(self._getstate())
 
-#@interop_type(Java_ZonedDateTime)
-class CustomDateTime(CustomInstant):
+@interop_type(Java_ZonedDateTime)
+class DateTime(Instant):
     def __getattribute__(self, name):
-        if name == "_tzinfo":
-            return timezone(timedelta(seconds=super().getOffset().getTotalSeconds()), super().getZone().getId())
+        match name:
+            case "_tzinfo": return timezone(timedelta(seconds=super().getOffset().getTotalSeconds()), super().getZone().getId())
         return super().__getattribute__(name)
 
-@interop_type(Java_State)
-@interop_type(Java_Thing)
-@interop_type(Java_Channel)
-@interop_type(Java_HistoricItem)
-class JavaConversionWrapper():
-    def __getattribute__(self, name):
-        attr = super().__getattribute__(name)
-        if callable(attr) and java.is_function(attr):
-            return lambda *args, **kwargs: self._getattribute_callback( attr, *args )
-        return attr
-
-    def _getattribute_callback(self, attr, *args):
-        try:
-            return self._getattribute_convert( attr(*args) )
-        except TypeError as e:
-            self._raise_attribute_exception(e, 3)
-
-    def _getattribute_convert(self, value):
-        if java.instanceof(value, Java_ZonedDateTime):
-            microsecond=int(value.getNano() / 1000)
-            tzinfo=timezone(timedelta(seconds=value.getOffset().getTotalSeconds()), value.getZone().getId())
-            return datetime(year=value.getYear(),month=value.getMonthValue(),day=value.getDayOfMonth(),hour=value.getHour(),minute=value.getMinute(),second=value.getSecond(),microsecond=microsecond,tzinfo=tzinfo)
-
-        if java.instanceof(value, Java_Instant):
-            microsecond=int(value.getNano() / 1000)
-            return datetime(year=value.getYear(),month=value.getMonthValue(),day=value.getDayOfMonth(),hour=value.getHour(),minute=value.getMinute(),second=value.getSecond(),microsecond=microsecond)
-
-        if java.instanceof(value, Java_Iterable):
-            _values = []
-            for _value in value:
-                _values.append(self._getattribute_convert(_value))
-            return _values
-
-        # convert polyglot.ForeignNone => None
-        if isinstance(value, ForeignNone):
-            return None
-
-        return value
-
-    def _raise_attribute_exception(self, e, skip):
-        if str(e) == "invalid instantiation of foreign object":
-            raise traceback.__wrapHelperException__(AttributeError("One of your function parameters does not match the required value type."), skip)
-        raise e
-
 @interop_type(Java_Item)
-class Item(JavaConversionWrapper):
+class Item():
     def postUpdate(self, state):
         scope.events.postUpdate(self, state)
 
@@ -313,57 +263,13 @@ class Item(JavaConversionWrapper):
             return current_state != new_state
         return True
 
-class ItemMetadata():
+class ItemSemantic(traceback.__CustomProxyClass__):
     def __init__(self, item):
-        self.item = item
+        super().__init__(Java_Semantics, lambda *args: tuple([item]) + args)
 
-    def get(self, namespace):
-        return METADATA_REGISTRY.get(Java_MetadataKey(namespace, self.item.getName()))
-
-    def set(self, namespace, value, configuration=None):
-        if self.get(namespace) == None:
-            return METADATA_REGISTRY.add(Java_Metadata(Java_MetadataKey(namespace, self.item.getName()), value, configuration))
-        else:
-            return METADATA_REGISTRY.update(Java_Metadata(Java_MetadataKey(namespace, self.item.getName()), value, configuration))
-
-    def remove(self, namespace):
-        return METADATA_REGISTRY.remove(Java_MetadataKey(namespace, self.getName()))
-
-    def removeAll(self):
-        METADATA_REGISTRY.removeItemMetadata(self.getName())
-
-class ItemSemantic(JavaConversionWrapper):
-    def __init__(self, item):
-        self.item = item
-
-    def __getattr__(self, name):
-        attr = getattr(Java_Semantics, name)
-        if callable(attr):
-            return lambda *args, **kwargs: self._getattr_callback( attr, *args )
-        return attr
-
-    def _getattr_callback(self, attr, *args):
-        try:
-            return self._getattribute_convert( attr(*(tuple([self.item]) + args)) )
-        except TypeError as e:
-            self._raise_attribute_exception(e, 3)
-
-class ItemPersistence(JavaConversionWrapper):
+class ItemPersistence(traceback.__CustomProxyClass__):
     def __init__(self, item, service_id = None):
-        self.item = item
-        self.service_id = service_id
-
-    def __getattr__(self, name):
-        attr = getattr(Java_PersistenceExtensions, name)
-        if callable(attr):
-            return lambda *args, **kwargs: self._getattr_callback( attr, *args )
-        return attr
-
-    def _getattr_callback(self, attr, *args):
-        try:
-            return self._getattribute_convert( attr(*(tuple([self.item]) + args + tuple([] if self.service_id is None else [self.service_id]))) )
-        except TypeError as e:
-            self._raise_attribute_exception(e, 3)
+        super().__init__(Java_PersistenceExtensions, lambda *args: tuple([item]) + args + tuple([] if service_id is None else [service_id]) )
 
     def getStableMinMaxState(self, time_slot, end_time = None):
         current_end_time = datetime.now().astimezone() if end_time is None else end_time
@@ -402,6 +308,25 @@ class ItemPersistence(JavaConversionWrapper):
     def getStableState(self, time_slot, end_time = None):
         value, _, _ = self.getStableMinMaxState(time_slot, end_time)
         return value
+
+class ItemMetadata():
+    def __init__(self, item):
+        self.item = item
+
+    def get(self, namespace):
+        return METADATA_REGISTRY.get(Java_MetadataKey(namespace, self.item.getName()))
+
+    def set(self, namespace, value, configuration=None):
+        if self.get(namespace) == None:
+            return METADATA_REGISTRY.add(Java_Metadata(Java_MetadataKey(namespace, self.item.getName()), value, configuration))
+        else:
+            return METADATA_REGISTRY.update(Java_Metadata(Java_MetadataKey(namespace, self.item.getName()), value, configuration))
+
+    def remove(self, namespace):
+        return METADATA_REGISTRY.remove(Java_MetadataKey(namespace, self.getName()))
+
+    def removeAll(self):
+        METADATA_REGISTRY.removeItemMetadata(self.getName())
 
 class Registry():
     @staticmethod
