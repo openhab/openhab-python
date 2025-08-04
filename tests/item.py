@@ -50,37 +50,3 @@ except AttributeError as e:
 # Check bool
 test = item.getSemantic().isLocation()
 assert isinstance(test, bool)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
