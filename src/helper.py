@@ -20,12 +20,12 @@ from org.openhab.core.automation.module.script.rulesupport.shared.simple import 
 from org.openhab.core.persistence.extensions import PersistenceExtensions as Java_PersistenceExtensions
 from org.openhab.core.model.script.actions import Semantics as Java_Semantics
 
-from org.openhab.core.items import Item as Java_Item, MetadataKey as Java_MetadataKey, Metadata as Java_Metadata, ItemNotFoundException
+from org.openhab.core.items import Item as Java_Item, MetadataKey as Java_MetadataKey, Metadata as Java_Metadata, ItemNotFoundException as Java_ItemNotFoundException
 from org.openhab.core.types import PrimitiveType as Java_PrimitiveType, UnDefType as Java_UnDefType
 from org.openhab.core.library.types import DecimalType as Java_DecimalType, UpDownType as Java_UpDownType, PercentType as Java_PercentType, DateTimeType as Java_DateTimeType
 
 from java.time import ZonedDateTime as Java_ZonedDateTime, Instant as Java_Instant
-from java.lang import Object as Java_Object, Iterable as Java_Iterable
+from java.lang import Object as Java_Object, Iterable as Java_Iterable, Exception as Java_Exception
 
 from scope import RuleSupport, osgi#, RuleSimple
 import scope
@@ -207,7 +207,10 @@ class DateTime(Instant):
 @interop_type(Java_Item)
 class Item():
     def postUpdate(self, state):
-        scope.events.postUpdate(self, state)
+        try:
+            scope.events.postUpdate(self, state)
+        except Java_Exception as e:
+            raise AttributeError(e)
 
     def postUpdateIfDifferent(self, state):
         if not Item._checkIfDifferent(self.getState(), state):
@@ -216,7 +219,10 @@ class Item():
         return True
 
     def sendCommand(self, command):
-        scope.events.sendCommand(self, command)
+        try:
+            scope.events.sendCommand(self, command)
+        except Java_Exception as e:
+            raise AttributeError(e)
 
     def sendCommandIfDifferent(self, command):
         if not Item._checkIfDifferent(self.getState(), command):
@@ -225,33 +231,51 @@ class Item():
         return True
 
     def getThings(self):
-        return ITEM_CHANNEL_LINK_REGISTRY.getBoundThings(self.getName())
+        try:
+            return ITEM_CHANNEL_LINK_REGISTRY.getBoundThings(self.getName())
+        except Java_Exception as e:
+            raise AttributeError(e)
 
     def getChannels(self):
-        return list(map(lambda uid: Registry.getChannel(uid.getAsString()), ITEM_CHANNEL_LINK_REGISTRY.getBoundChannels(self.getName())))
+        try:
+            return list(map(lambda uid: Registry.getChannel(uid.getAsString()), ITEM_CHANNEL_LINK_REGISTRY.getBoundChannels(self.getName())))
+        except Java_Exception as e:
+            raise AttributeError(e)
 
     def getChannelUIDs(self):
-        return ITEM_CHANNEL_LINK_REGISTRY.getBoundChannels(self.getName())
+        try:
+            return ITEM_CHANNEL_LINK_REGISTRY.getBoundChannels(self.getName())
+        except Java_Exception as e:
+            raise AttributeError(e)
 
     def getLinks(self):
-        return ITEM_CHANNEL_LINK_REGISTRY.getLinks(self.getName())
+        try:
+            return ITEM_CHANNEL_LINK_REGISTRY.getLinks(self.getName())
+        except Java_Exception as e:
+            raise AttributeError(e)
 
     def link(self, channel_uid, link_config = {}):
-        link = Java_ItemChannelLink(self.getItem(), Java_ChannelUID(channel_uid), Configuration(link_config))
-        links = [l for l in self.getLinks() if l.getLinkedUID().getAsString() == channel_uid]
-        if len(links) > 0:
-            if not links[0].getConfiguration().equals(link.getConfiguration()):
-                ITEM_CHANNEL_LINK_REGISTRY.update(link)
-        else:
-            ITEM_CHANNEL_LINK_REGISTRY.add(link)
-        return link
+        try:
+            link = Java_ItemChannelLink(self.getName(), Java_ChannelUID(channel_uid), Configuration(link_config))
+            links = [l for l in self.getLinks() if l.getLinkedUID().getAsString() == channel_uid]
+            if len(links) > 0:
+                if not links[0].getConfiguration().equals(link.getConfiguration()):
+                    ITEM_CHANNEL_LINK_REGISTRY.update(link)
+            else:
+                ITEM_CHANNEL_LINK_REGISTRY.add(link)
+            return link
+        except Java_Exception as e:
+            raise AttributeError(e)
 
     def unlink(self, channel_uid):
-        links = [l for l in self.getLinks() if l.getLinkedUID().getAsString() == channel_uid]
-        if len(links) > 0:
-            ITEM_CHANNEL_LINK_REGISTRY.remove(links[0].getUID())
-            return links[0]
-        raise NotInitialisedException("Link {} not found".format(channel_uid))
+        try:
+            links = [l for l in self.getLinks() if l.getLinkedUID().getAsString() == channel_uid]
+            if len(links) > 0:
+                ITEM_CHANNEL_LINK_REGISTRY.remove(links[0].getUID())
+                return links[0]
+            raise NotInitialisedException("Link {} not found".format(channel_uid))
+        except Java_Exception as e:
+            raise AttributeError(e)
 
     def getPersistence(self, service_id = None):
         return ItemPersistence(self, service_id)
@@ -347,19 +371,31 @@ class ItemMetadata():
         self.item = item
 
     def get(self, namespace):
-        return METADATA_REGISTRY.get(Java_MetadataKey(namespace, self.item.getName()))
+        try:
+            return METADATA_REGISTRY.get(Java_MetadataKey(namespace, self.item.getName()))
+        except Java_Exception as e:
+            raise AttributeError(e)
 
     def set(self, namespace, value, configuration=None):
-        if self.get(namespace) == None:
-            return METADATA_REGISTRY.add(Java_Metadata(Java_MetadataKey(namespace, self.item.getName()), value, configuration))
-        else:
-            return METADATA_REGISTRY.update(Java_Metadata(Java_MetadataKey(namespace, self.item.getName()), value, configuration))
+        try:
+            if self.get(namespace) == None:
+                return METADATA_REGISTRY.add(Java_Metadata(Java_MetadataKey(namespace, self.item.getName()), value, configuration))
+            else:
+                return METADATA_REGISTRY.update(Java_Metadata(Java_MetadataKey(namespace, self.item.getName()), value, configuration))
+        except Java_Exception as e:
+            raise AttributeError(e)
 
     def remove(self, namespace):
-        return METADATA_REGISTRY.remove(Java_MetadataKey(namespace, self.getName()))
+        try:
+            return METADATA_REGISTRY.remove(Java_MetadataKey(namespace, self.item.getName()))
+        except Java_Exception as e:
+            raise AttributeError(e)
 
     def removeAll(self):
-        METADATA_REGISTRY.removeItemMetadata(self.getName())
+        try:
+            METADATA_REGISTRY.removeItemMetadata(self.item.getName())
+        except Java_Exception as e:
+            raise AttributeError(e)
 
 class Registry():
     @staticmethod
@@ -368,37 +404,49 @@ class Registry():
 
     @staticmethod
     def getThing(uid):
-        thing = scope.things.get(Java_ThingUID(uid))
-        if thing is None:
-            raise NotInitialisedException("Thing {} not found".format(uid))
-        return thing
+        try:
+            thing = scope.things.get(Java_ThingUID(uid))
+            if thing is None:
+                raise NotInitialisedException("Thing {} not found".format(uid))
+            return thing
+        except Java_Exception as e:
+            raise AttributeError(e)
 
     @staticmethod
     def getChannel(uid):
-        channel = scope.things.getChannel(Java_ChannelUID(uid))
-        if channel is None:
-            raise NotInitialisedException("Channel {} not found".format(uid))
-        return channel
+        try:
+            channel = scope.things.getChannel(Java_ChannelUID(uid))
+            if channel is None:
+                raise NotInitialisedException("Channel {} not found".format(uid))
+            return channel
+        except Java_Exception as e:
+            raise AttributeError(e)
 
     @staticmethod
     def getItemState(item_name, default = None):
-        if isinstance(item_name, str):
-            state = scope.items.get(item_name)
-            if state is None:
-                raise NotInitialisedException("Item state for {} not found".format(item_name))
-            if default is not None and java.instanceof(state, Java_UnDefType):
-                state = default
-            return state
-        raise Exception("Unsupported parameter type {}".format(type(item_name)))
+        try:
+            if isinstance(item_name, str):
+                state = scope.items.get(item_name)
+                if state is None:
+                    raise NotInitialisedException("Item state for {} not found".format(item_name))
+                if default is not None and java.instanceof(state, Java_UnDefType):
+                    state = default
+                return state
+            raise Exception("Unsupported parameter type {}".format(type(item_name)))
+        except Java_Exception as e:
+            raise AttributeError(e)
 
     @staticmethod
     def getItem(item_name):
-        if isinstance(item_name, str):
-            try:
-                return scope.itemRegistry.getItem(item_name)
-            except ItemNotFoundException:
-                raise NotInitialisedException("Item {} not found".format(item_name))
-        raise Exception("Unsupported parameter type {}".format(type(item_name)))
+        try:
+            if isinstance(item_name, str):
+                try:
+                    return scope.itemRegistry.getItem(item_name)
+                except Java_ItemNotFoundException:
+                    raise NotInitialisedException("Item {} not found".format(item_name))
+            raise Exception("Unsupported parameter type {}".format(type(item_name)))
+        except Java_Exception as e:
+            raise AttributeError(e)
 
     @staticmethod
     def resolveItem(item_or_item_name):
@@ -408,15 +456,21 @@ class Registry():
 
     @staticmethod
     def removeItem(item_name):
-        item = Registry.getItem(item_name)
-        scope.itemRegistry.remove(item_name, False)
-        return item
+        try:
+            item = Registry.getItem(item_name)
+            scope.itemRegistry.remove(item_name, False)
+            return item
+        except Java_Exception as e:
+            raise AttributeError(e)
 
     @staticmethod
     def addItem(item_name, item_type, item_config = {}):
-        item = Registry._createItem(item_name, item_type, item_config)
-        scope.itemRegistry.add(item)
-        return Registry.getItem(item_config['name'])
+        try:
+            item = Registry._createItem(item_name, item_type, item_config)
+            scope.itemRegistry.add(item)
+            return Registry.getItem(item_name)
+        except Java_Exception as e:
+            raise AttributeError(e)
 
     @staticmethod
     def _createItem(item_name, item_type, item_config = {}):

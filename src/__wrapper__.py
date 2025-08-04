@@ -116,9 +116,10 @@ def __import_wrapper__():
 
         result_r = []
         result_r.append("{}, {}".format(exctype.__name__, excvalue))
-        result_r.append("Traceback (most recent call last):")
-        for line in traceback.format_list(_tb_r):
-            result_r.append(line.strip())
+        if len(_tb_r) > 0:
+            result_r.append("Traceback (most recent call last):")
+            for line in traceback.format_list(_tb_r):
+                result_r.append(line.strip())
 
         print("\n".join(result_r), file=sys.stderr)
     sys.excepthook = excepthook
