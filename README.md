@@ -477,6 +477,8 @@ There is no need to import this class directly. It is returned as a result of fu
 | getPersistence           | \<instance\>.getPersistence(service_id = None)                                        | [ItemPersistence](#class-itempersistence)                                                           |
 | getSemantic              | \<instance\>.getSemantic()                                                            | [ItemSemantic](#class-itemsemantic)                                                                 |
 | getMetadata              | \<instance\>.getMetadata()                                                            | [ItemMetadata](#class-itemmetadata)                                                                 |
+| getBoundThings           | \<instance\>.getBoundThings()                                                         | Array of [openHAB Things](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/thing)      |
+| getBoundChannels         | \<instance\>.getBoundChannels()                                                       | Array of [openHAB ChannelUID](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/channeluid) |
 | buildSafeName            | Item.buildSafeName(item_name)                                                         | Escaped string                                                                                      |
 | <...>                    | see [openHAB Item API](https://www.openhab.org/javadoc/latest/org/openhab/core/items/item) |                                                                                                |
 

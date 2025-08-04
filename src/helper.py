@@ -29,6 +29,7 @@ import scope
 
 METADATA_REGISTRY = getService("org.openhab.core.items.MetadataRegistry")
 ITEM_BUILDER_FACTORY = getService("org.openhab.core.items.ItemBuilderFactory")
+ITEM_CHANNEL_LINK_REGISTRY = getService("org.openhab.core.thing.link.ItemChannelLinkRegistry")
 
 def versiontuple(v):
     return tuple(map(int, (v.split("."))))
@@ -219,6 +220,12 @@ class Item():
             return False
         self.sendCommand(command)
         return True
+
+    def getBoundThings(self):
+        return ITEM_CHANNEL_LINK_REGISTRY.getBoundThings(self.getName())
+
+    def getBoundChannels(self):
+        return ITEM_CHANNEL_LINK_REGISTRY.getBoundChannels(self.getName())
 
     def getPersistence(self, service_id = None):
         return ItemPersistence(self, service_id)
