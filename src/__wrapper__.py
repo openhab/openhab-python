@@ -58,6 +58,7 @@ def __import_wrapper__():
             except AttributeError as e:
                 processMissingAttribute(self.proxy, name, 2)
     traceback.__CustomProxyClass__ = CustomProxyClass
+    traceback.__wrapHelperException__ = wrapHelperException
     # **************************************************************************
 
     # *************** IMPORT WRAPPER *******************************************

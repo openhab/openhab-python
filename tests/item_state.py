@@ -6,11 +6,7 @@ import scope
 try:
     item = Registry.getItem("TestItemState")
 except:
-    config = {
-        "name": "TestItemState",
-        "type": "String"
-    }
-    item = Registry.addItem(config)
+    item = Registry.addItem("TestItemState", "String")
 
 # Check success
 state = item.getState()

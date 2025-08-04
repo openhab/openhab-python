@@ -6,7 +6,7 @@ import time
 import threading
 import traceback
 import profile, pstats, io
-from inspect import isfunction
+from inspect import isfunction, isclass
 from datetime import datetime, timezone, timedelta
 
 from openhab.jsr223 import TopCallStackFrame
@@ -64,6 +64,10 @@ class rule():
         self.conditions = conditions
         self.runtime_measurement = runtime_measurement
         self.profile_code = profile_code
+
+        if isfunction(name) or isclass(name):
+            self.name = None
+            self(name)
 
     def __call__(self, clazz_or_function):
         proxy = self
@@ -173,6 +177,14 @@ class rule():
         except:
             rule_obj.logger.error("Rule execution failed:\n" + traceback.format_exc())
 
+def javahandler(function):
+    def wrap(*args, **kwargs):
+        try:
+            return function(*args, **kwargs)
+        except Java_Exception as e:
+            raise traceback.__wrapHelperException__(AttributeError(e),1)
+    return wrap
+
 @interop_type(Java_Instant)
 class Instant(datetime):
     def __new__(cls, year, month=None, day=None, hour=0, minute=0, second=0,
@@ -206,11 +218,9 @@ class DateTime(Instant):
 
 @interop_type(Java_Item)
 class Item():
+    @javahandler
     def postUpdate(self, state):
-        try:
-            scope.events.postUpdate(self, state)
-        except Java_Exception as e:
-            raise AttributeError(e)
+        scope.events.postUpdate(self, state)
 
     def postUpdateIfDifferent(self, state):
         if not Item._checkIfDifferent(self.getState(), state):
@@ -218,11 +228,9 @@ class Item():
         self.postUpdate(state)
         return True
 
+    @javahandler
     def sendCommand(self, command):
-        try:
-            scope.events.sendCommand(self, command)
-        except Java_Exception as e:
-            raise AttributeError(e)
+        scope.events.sendCommand(self, command)
 
     def sendCommandIfDifferent(self, command):
         if not Item._checkIfDifferent(self.getState(), command):
@@ -230,52 +238,40 @@ class Item():
         self.sendCommand(command)
         return True
 
+    @javahandler
     def getThings(self):
-        try:
-            return ITEM_CHANNEL_LINK_REGISTRY.getBoundThings(self.getName())
-        except Java_Exception as e:
-            raise AttributeError(e)
+        return ITEM_CHANNEL_LINK_REGISTRY.getBoundThings(self.getName())
 
+    @javahandler
     def getChannels(self):
-        try:
-            return list(map(lambda uid: Registry.getChannel(uid.getAsString()), ITEM_CHANNEL_LINK_REGISTRY.getBoundChannels(self.getName())))
-        except Java_Exception as e:
-            raise AttributeError(e)
+        return list(map(lambda uid: Registry.getChannel(uid.getAsString()), ITEM_CHANNEL_LINK_REGISTRY.getBoundChannels(self.getName())))
 
+    @javahandler
     def getChannelUIDs(self):
-        try:
-            return ITEM_CHANNEL_LINK_REGISTRY.getBoundChannels(self.getName())
-        except Java_Exception as e:
-            raise AttributeError(e)
+        return ITEM_CHANNEL_LINK_REGISTRY.getBoundChannels(self.getName())
 
+    @javahandler
     def getLinks(self):
-        try:
-            return ITEM_CHANNEL_LINK_REGISTRY.getLinks(self.getName())
-        except Java_Exception as e:
-            raise AttributeError(e)
+        return ITEM_CHANNEL_LINK_REGISTRY.getLinks(self.getName())
 
+    @javahandler
     def link(self, channel_uid, link_config = {}):
-        try:
-            link = Java_ItemChannelLink(self.getName(), Java_ChannelUID(channel_uid), Configuration(link_config))
-            links = [l for l in self.getLinks() if l.getLinkedUID().getAsString() == channel_uid]
-            if len(links) > 0:
-                if not links[0].getConfiguration().equals(link.getConfiguration()):
-                    ITEM_CHANNEL_LINK_REGISTRY.update(link)
-            else:
-                ITEM_CHANNEL_LINK_REGISTRY.add(link)
-            return link
-        except Java_Exception as e:
-            raise AttributeError(e)
+        link = Java_ItemChannelLink(self.getName(), Java_ChannelUID(channel_uid), Configuration(link_config))
+        links = [l for l in self.getLinks() if l.getLinkedUID().getAsString() == channel_uid]
+        if len(links) > 0:
+            if not links[0].getConfiguration().equals(link.getConfiguration()):
+                ITEM_CHANNEL_LINK_REGISTRY.update(link)
+        else:
+            ITEM_CHANNEL_LINK_REGISTRY.add(link)
+        return link
 
+    @javahandler
     def unlink(self, channel_uid):
-        try:
-            links = [l for l in self.getLinks() if l.getLinkedUID().getAsString() == channel_uid]
-            if len(links) > 0:
-                ITEM_CHANNEL_LINK_REGISTRY.remove(links[0].getUID())
-                return links[0]
-            raise NotInitialisedException("Link {} not found".format(channel_uid))
-        except Java_Exception as e:
-            raise AttributeError(e)
+        links = [l for l in self.getLinks() if l.getLinkedUID().getAsString() == channel_uid]
+        if len(links) > 0:
+            ITEM_CHANNEL_LINK_REGISTRY.remove(links[0].getUID())
+            return links[0]
+        raise NotInitialisedException("Link {} not found".format(channel_uid))
 
     def getPersistence(self, service_id = None):
         return ItemPersistence(self, service_id)
@@ -370,32 +366,24 @@ class ItemMetadata():
     def __init__(self, item):
         self.item = item
 
+    @javahandler
     def get(self, namespace):
-        try:
-            return METADATA_REGISTRY.get(Java_MetadataKey(namespace, self.item.getName()))
-        except Java_Exception as e:
-            raise AttributeError(e)
+        return METADATA_REGISTRY.get(Java_MetadataKey(namespace, self.item.getName()))
 
+    @javahandler
     def set(self, namespace, value, configuration=None):
-        try:
-            if self.get(namespace) == None:
-                return METADATA_REGISTRY.add(Java_Metadata(Java_MetadataKey(namespace, self.item.getName()), value, configuration))
-            else:
-                return METADATA_REGISTRY.update(Java_Metadata(Java_MetadataKey(namespace, self.item.getName()), value, configuration))
-        except Java_Exception as e:
-            raise AttributeError(e)
+        if self.get(namespace) == None:
+            return METADATA_REGISTRY.add(Java_Metadata(Java_MetadataKey(namespace, self.item.getName()), value, configuration))
+        else:
+            return METADATA_REGISTRY.update(Java_Metadata(Java_MetadataKey(namespace, self.item.getName()), value, configuration))
 
+    @javahandler
     def remove(self, namespace):
-        try:
-            return METADATA_REGISTRY.remove(Java_MetadataKey(namespace, self.item.getName()))
-        except Java_Exception as e:
-            raise AttributeError(e)
+        return METADATA_REGISTRY.remove(Java_MetadataKey(namespace, self.item.getName()))
 
+    @javahandler
     def removeAll(self):
-        try:
-            METADATA_REGISTRY.removeItemMetadata(self.item.getName())
-        except Java_Exception as e:
-            raise AttributeError(e)
+        METADATA_REGISTRY.removeItemMetadata(self.item.getName())
 
 class Registry():
     @staticmethod
@@ -403,50 +391,42 @@ class Registry():
         return scope.things.getAll()
 
     @staticmethod
+    @javahandler
     def getThing(uid):
-        try:
-            thing = scope.things.get(Java_ThingUID(uid))
-            if thing is None:
-                raise NotInitialisedException("Thing {} not found".format(uid))
-            return thing
-        except Java_Exception as e:
-            raise AttributeError(e)
+        thing = scope.things.get(Java_ThingUID(uid))
+        if thing is None:
+            raise NotInitialisedException("Thing {} not found".format(uid))
+        return thing
 
     @staticmethod
+    @javahandler
     def getChannel(uid):
-        try:
-            channel = scope.things.getChannel(Java_ChannelUID(uid))
-            if channel is None:
-                raise NotInitialisedException("Channel {} not found".format(uid))
-            return channel
-        except Java_Exception as e:
-            raise AttributeError(e)
+        channel = scope.things.getChannel(Java_ChannelUID(uid))
+        if channel is None:
+            raise NotInitialisedException("Channel {} not found".format(uid))
+        return channel
 
     @staticmethod
+    @javahandler
     def getItemState(item_name, default = None):
-        try:
-            if isinstance(item_name, str):
-                state = scope.items.get(item_name)
-                if state is None:
-                    raise NotInitialisedException("Item state for {} not found".format(item_name))
-                if default is not None and java.instanceof(state, Java_UnDefType):
-                    state = default
-                return state
-            raise Exception("Unsupported parameter type {}".format(type(item_name)))
-        except Java_Exception as e:
-            raise AttributeError(e)
+        if isinstance(item_name, str):
+            state = scope.items.get(item_name)
+            if state is None:
+                raise NotInitialisedException("Item state for {} not found".format(item_name))
+            if default is not None and java.instanceof(state, Java_UnDefType):
+                state = default
+            return state
+        raise Exception("Unsupported parameter type {}".format(type(item_name)))
 
     @staticmethod
+    @javahandler
     def getItem(item_name):
-        try:
-            if isinstance(item_name, str):
-                try:
-                    return scope.itemRegistry.getItem(item_name)
-                except Java_ItemNotFoundException:
-                    raise NotInitialisedException("Item {} not found".format(item_name))
-            raise Exception("Unsupported parameter type {}".format(type(item_name)))
-        except Java_Exception as e:
-            raise AttributeError(e)
+        if isinstance(item_name, str):
+            try:
+                return scope.itemRegistry.getItem(item_name)
+            except Java_ItemNotFoundException:
+                raise NotInitialisedException("Item {} not found".format(item_name))
+        raise Exception("Unsupported parameter type {}".format(type(item_name)))
 
     @staticmethod
     def resolveItem(item_or_item_name):
@@ -455,22 +435,18 @@ class Registry():
         return Registry.getItem(item_or_item_name)
 
     @staticmethod
+    @javahandler
     def removeItem(item_name):
-        try:
-            item = Registry.getItem(item_name)
-            scope.itemRegistry.remove(item_name, False)
-            return item
-        except Java_Exception as e:
-            raise AttributeError(e)
+        item = Registry.getItem(item_name)
+        scope.itemRegistry.remove(item_name, False)
+        return item
 
     @staticmethod
+    @javahandler
     def addItem(item_name, item_type, item_config = {}):
-        try:
-            item = Registry._createItem(item_name, item_type, item_config)
-            scope.itemRegistry.add(item)
-            return Registry.getItem(item_name)
-        except Java_Exception as e:
-            raise AttributeError(e)
+        item = Registry._createItem(item_name, item_type, item_config)
+        scope.itemRegistry.add(item)
+        return Registry.getItem(item_name)
 
     @staticmethod
     def _createItem(item_name, item_type, item_config = {}):
@@ -513,7 +489,6 @@ class Registry():
         elif isinstance(item_or_item_name, Item):
             return item_or_item_name.getName()
         raise Exception("Unsupported parameter type {}".format(type(item_or_item_name)))
-
 
 # Timer will not work in transformations scripts, because LIFECYLE_TRACKER cleanup will never run successfully
 class Timer(threading.Timer):

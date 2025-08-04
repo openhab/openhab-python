@@ -7,11 +7,7 @@ import scope
 try:
     item = Registry.getItem("TestItemTimeseries")
 except:
-    config = {
-        "name": "TestItemTimeseries",
-        "type": "Number"
-    }
-    item = Registry.addItem(config)
+    item = Registry.addItem("TestItemTimeseries", "Number")
 
 # Test for different types of a State
 ts = TimeSeries(TimeSeries.Policy.ADD)

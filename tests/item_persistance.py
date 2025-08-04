@@ -8,13 +8,18 @@ import scope
 try:
     item = Registry.getItem("TestItemPersistance")
 except:
-    config = {
-        "name": "TestItemPersistance",
-        "type": "Number"
-    }
-    item = Registry.addItem(config)
+    item = Registry.addItem("TestItemPersistance", "Number")
 
 persistence = item.getPersistence()
+
+# Check missing function
+try:
+    persistence.test(item)
+    assert False
+except AttributeError as e:
+    assert str(e) == "Java instance of 'org.openhab.core.persistence.extensions.PersistenceExtensions' has no attribute 'test'"
+    assert str(e.__traceback__.tb_frame.f_code.co_filename).endswith("item_persistance.py")
+
 # Check wrong parameter
 try:
     persistence.changedSince(item)
@@ -24,8 +29,10 @@ except AttributeError as e:
     assert str(e.__traceback__.tb_frame.f_code.co_filename).endswith("item_persistance.py")
 
 # Check success
-persistence.changedSince(datetime.now().astimezone())
+result = persistence.changedSince(datetime.now().astimezone())
+assert result == False
 persistence.changedSince(datetime.now())
+assert result == False
 
 # Check success
 endDate = datetime.now()
@@ -35,3 +42,4 @@ persistence.getAllStatesBetween(startDate, endDate)
 # Check bool
 test = item.getSemantic().isLocation()
 assert isinstance(test, bool)
+

@@ -6,11 +6,7 @@ import scope
 try:
     item = Registry.getItem("TestItemSwitch")
 except:
-    config = {
-        "name": "TestItemSwitch",
-        "type": "Switch"
-    }
-    item = Registry.addItem(config)
+    item = Registry.addItem("TestItemSwitch", "Switch")
 
 item.sendCommand("ON")
 time.sleep(0.1)

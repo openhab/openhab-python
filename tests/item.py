@@ -8,11 +8,7 @@ import scope
 try:
     item = Registry.getItem("TestItemBase")
 except:
-    config = {
-        "name": "TestItemBase",
-        "type": "Number"
-    }
-    item = Registry.addItem(config)
+    item = Registry.addItem("TestItemBase", "Number")
 
 # Class type
 assert isinstance(item, Java_Item)
@@ -21,6 +17,7 @@ assert isinstance(item, Java_Item)
 test = item.hasTag("1")
 assert isinstance(test, bool)
 
+# Check missing function
 try:
     item.test()
     assert False
@@ -36,17 +33,37 @@ except AttributeError as e:
     assert str(e) == "One of your function parameters does not match the required value type."
     assert str(e.__traceback__.tb_frame.f_code.co_filename).endswith("item.py")
 
-# Check wrong parameter
+# Check "None" parameter
 try:
-    item.getPersistence().changedSince(item)
-    assert False
+    Registry.getItem("TestItemBase").getLastStateChange().test()
 except AttributeError as e:
-    assert str(e) == "One of your function parameters does not match the required value type."
+    assert str(e) == "None object has no attribute 'test'"
     assert str(e.__traceback__.tb_frame.f_code.co_filename).endswith("item.py")
+
+try:
+    item.link("xyz")
+except AttributeError as e:
+    assert str(e) == "java.lang.IllegalArgumentException: UID must have at least 4 segments: [xyz]"
+    assert str(e.__traceback__.tb_frame.f_code.co_filename).endswith("item.py")
+
 
 # Check bool
 test = item.getSemantic().isLocation()
 assert isinstance(test, bool)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
