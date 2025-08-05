@@ -1,3 +1,5 @@
+import builtins
+
 from openhab import Registry
 from datetime import datetime, timedelta
 
@@ -18,7 +20,7 @@ try:
     assert False
 except AttributeError as e:
     assert str(e) == "Java instance of 'org.openhab.core.persistence.extensions.PersistenceExtensions' has no attribute 'test'"
-    assert str(e.__traceback__.tb_frame.f_code.co_filename).endswith("item_persistance.py")
+    assert builtins.__validateException__(e, __file__)
 
 # Check wrong parameter
 try:
@@ -26,7 +28,7 @@ try:
     assert False
 except AttributeError as e:
     assert str(e) == "One of your function parameters does not match the required value type."
-    assert str(e.__traceback__.tb_frame.f_code.co_filename).endswith("item_persistance.py")
+    assert builtins.__validateException__(e, __file__)
 
 # Check success
 result = persistence.changedSince(datetime.now().astimezone())
