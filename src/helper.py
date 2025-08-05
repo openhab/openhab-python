@@ -1,4 +1,5 @@
 import builtins
+from typing import TYPE_CHECKING
 
 from polyglot import ForeignNone, ForeignObject, interop_type
 
@@ -221,11 +222,11 @@ class _JavaCallProxy:
         except AttributeError as e:
             _Tracing.processMissingAttribute(self.proxy, name)
 
-class ItemSemantic(_JavaCallProxy):
+class ItemSemantic(Java_Semantics if TYPE_CHECKING else _JavaCallProxy):
     def __init__(self, item):
         super().__init__(Java_Semantics, lambda *args: tuple([item]) + args)
 
-class ItemPersistence(_JavaCallProxy):
+class ItemPersistence(Java_PersistenceExtensions if TYPE_CHECKING else _JavaCallProxy):
     def __init__(self, item, service_id = None):
         super().__init__(Java_PersistenceExtensions, lambda *args: tuple([item]) + args + tuple([] if service_id is None else [service_id]) )
 
@@ -333,7 +334,7 @@ class DateTime(Instant):
         return super().__getattribute__(name)
 
 @interop_type(Java_Item)
-class Item():
+class Item(Java_Item if TYPE_CHECKING else object):
     @_Tracing.javacall
     def postUpdate(self, state: tuple[Java_Number, Java_State, str]):
         scope.events.postUpdate(self, state)
