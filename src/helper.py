@@ -16,18 +16,18 @@ from openhab.services import getService
 
 from org.openhab.core.config.core import Configuration
 
-from org.openhab.core.thing import ChannelUID as Java_ChannelUID, ThingUID as Java_ThingUID
+from org.openhab.core.thing import ChannelUID as Java_ChannelUID, ThingUID as Java_ThingUID, Channel as Java_Channel, Thing as Java_Thing
 from org.openhab.core.thing.link import ItemChannelLink as Java_ItemChannelLink
 from org.openhab.core.automation.module.script.rulesupport.shared.simple import SimpleRule as Java_SimpleRule
 from org.openhab.core.persistence.extensions import PersistenceExtensions as Java_PersistenceExtensions
 from org.openhab.core.model.script.actions import Semantics as Java_Semantics
 
 from org.openhab.core.items import Item as Java_Item, MetadataKey as Java_MetadataKey, Metadata as Java_Metadata, ItemNotFoundException as Java_ItemNotFoundException
-from org.openhab.core.types import PrimitiveType as Java_PrimitiveType, UnDefType as Java_UnDefType
+from org.openhab.core.types import PrimitiveType as Java_PrimitiveType, UnDefType as Java_UnDefType, State as Java_State, Command as Java_Command
 from org.openhab.core.library.types import DecimalType as Java_DecimalType, UpDownType as Java_UpDownType, PercentType as Java_PercentType, DateTimeType as Java_DateTimeType
 
 from java.time import ZonedDateTime as Java_ZonedDateTime, Instant as Java_Instant
-from java.lang import Object as Java_Object, Iterable as Java_Iterable, Exception as Java_Exception
+from java.lang import Object as Java_Object, Number as Java_Number, Iterable as Java_Iterable, Exception as Java_Exception
 
 from scope import RuleSupport, osgi#, RuleSimple
 import scope
@@ -60,7 +60,7 @@ class NotFoundException(Exception):
     pass
 
 class rule():
-    def __init__(self, name=None, description=None, tags=None, triggers=None, conditions=None, runtime_measurement=True, profile_code=False):
+    def __init__(self, name: str = None, description: str = None, tags: list[str] = None, triggers: list = None, conditions: list = None, runtime_measurement: bool = True, profile_code: bool = False):
         self.name = name
         self.description = description
         self.tags = tags
@@ -221,6 +221,75 @@ class _JavaCallProxy:
         except AttributeError as e:
             _Tracing.processMissingAttribute(self.proxy, name)
 
+class ItemSemantic(_JavaCallProxy):
+    def __init__(self, item):
+        super().__init__(Java_Semantics, lambda *args: tuple([item]) + args)
+
+class ItemPersistence(_JavaCallProxy):
+    def __init__(self, item, service_id = None):
+        super().__init__(Java_PersistenceExtensions, lambda *args: tuple([item]) + args + tuple([] if service_id is None else [service_id]) )
+
+    def getStableMinMaxState(self, time_slot: int, end_time: datetime = None) -> tuple[Java_DecimalType,Java_DecimalType,Java_DecimalType]:
+        current_end_time = datetime.now().astimezone() if end_time is None else end_time
+        min_time = current_end_time - timedelta(seconds=time_slot)
+
+        min_value = max_value = None
+        value = duration = 0.0
+
+        entry = self.persistedState(current_end_time)
+
+        while True:
+            currentStartTime = entry.getTimestamp()
+
+            if currentStartTime < min_time:
+                currentStartTime = min_time
+
+            _duration = ( currentStartTime - current_end_time ).total_seconds()
+            _value = entry.getState().doubleValue()
+
+            if min_value == None or min_value > _value:
+                min_value = _value
+            if max_value == None or max_value < _value:
+                max_value = _value
+
+            duration = duration + _duration
+            value = value + ( _value * _duration )
+
+            current_end_time = currentStartTime - timedelta(microseconds=1)
+            if current_end_time < min_time:
+                break
+
+            entry = self.persistedState(current_end_time)
+
+        return [ Java_DecimalType(value / duration), Java_DecimalType(min_value), Java_DecimalType(max_value) ]
+
+    def getStableState(self, time_slot: int, end_time: datetime = None) -> Java_DecimalType:
+        value, _, _ = self.getStableMinMaxState(time_slot, end_time)
+        return value
+
+class ItemMetadata():
+    def __init__(self, item):
+        self.item = item
+
+    @_Tracing.javacall
+    def get(self, namespace: str) -> Java_Metadata:
+        return METADATA_REGISTRY.get(Java_MetadataKey(namespace, self.item.getName()))
+
+    @_Tracing.javacall
+    def set(self, namespace: str, value, configuration=None) -> Java_Metadata:
+        if self.get(namespace) == None:
+            return METADATA_REGISTRY.add(Java_Metadata(Java_MetadataKey(namespace, self.item.getName()), value, configuration))
+        else:
+            return METADATA_REGISTRY.update(Java_Metadata(Java_MetadataKey(namespace, self.item.getName()), value, configuration))
+
+    @_Tracing.javacall
+    def remove(self, namespace: str) -> Java_Metadata:
+        return METADATA_REGISTRY.remove(Java_MetadataKey(namespace, self.item.getName()))
+
+    @_Tracing.javacall
+    def removeAll(self):
+        METADATA_REGISTRY.removeItemMetadata(self.item.getName())
+
 @interop_type(Java_Object)
 class Object:
     def __getattribute__(self, name):
@@ -266,43 +335,43 @@ class DateTime(Instant):
 @interop_type(Java_Item)
 class Item():
     @_Tracing.javacall
-    def postUpdate(self, state):
+    def postUpdate(self, state: tuple[Java_Number, Java_State, str]):
         scope.events.postUpdate(self, state)
 
-    def postUpdateIfDifferent(self, state):
+    def postUpdateIfDifferent(self, state: tuple[Java_Number, Java_State, str]) -> bool:
         if not Item._checkIfDifferent(self.getState(), state):
             return False
         self.postUpdate(state)
         return True
 
     @_Tracing.javacall
-    def sendCommand(self, command):
+    def sendCommand(self, command: tuple[Java_Number, Java_Command, str]):
         scope.events.sendCommand(self, command)
 
-    def sendCommandIfDifferent(self, command):
+    def sendCommandIfDifferent(self, command: tuple[Java_Number, Java_Command, str]) -> bool:
         if not Item._checkIfDifferent(self.getState(), command):
             return False
         self.sendCommand(command)
         return True
 
     @_Tracing.javacall
-    def getThings(self):
+    def getThings(self) -> list[Java_Thing]:
         return ITEM_CHANNEL_LINK_REGISTRY.getBoundThings(self.getName())
 
     @_Tracing.javacall
-    def getChannels(self):
+    def getChannels(self) -> list[Java_Channel]:
         return list(map(lambda uid: Registry.getChannel(uid.getAsString()), ITEM_CHANNEL_LINK_REGISTRY.getBoundChannels(self.getName())))
 
     @_Tracing.javacall
-    def getChannelUIDs(self):
+    def getChannelUIDs(self) -> list[str]:
         return ITEM_CHANNEL_LINK_REGISTRY.getBoundChannels(self.getName())
 
     @_Tracing.javacall
-    def getLinks(self):
+    def getLinks(self) -> list[Java_ItemChannelLink]:
         return ITEM_CHANNEL_LINK_REGISTRY.getLinks(self.getName())
 
     @_Tracing.javacall
-    def link(self, channel_uid, link_config = {}):
+    def link(self, channel_uid: str, link_config = {}) -> Java_ItemChannelLink:
         link = Java_ItemChannelLink(self.getName(), Java_ChannelUID(channel_uid), Configuration(link_config))
         links = [l for l in self.getLinks() if l.getLinkedUID().getAsString() == channel_uid]
         if len(links) > 0:
@@ -313,20 +382,20 @@ class Item():
         return link
 
     @_Tracing.javacall
-    def unlink(self, channel_uid):
+    def unlink(self, channel_uid: str) -> Java_ItemChannelLink:
         links = [l for l in self.getLinks() if l.getLinkedUID().getAsString() == channel_uid]
         if len(links) > 0:
             ITEM_CHANNEL_LINK_REGISTRY.remove(links[0].getUID())
             return links[0]
         raise NotFoundException("Link {} not found".format(channel_uid))
 
-    def getPersistence(self, service_id = None):
+    def getPersistence(self, service_id: str = None) -> ItemPersistence:
         return ItemPersistence(self, service_id)
 
-    def getSemantic(self):
+    def getSemantic(self) -> ItemSemantic:
         return ItemSemantic(self)
 
-    def getMetadata(self):
+    def getMetadata(self) -> ItemMetadata:
         return ItemMetadata(self)
 
     @staticmethod
@@ -363,83 +432,14 @@ class Item():
             return current_state != new_state
         return True
 
-class ItemSemantic(_JavaCallProxy):
-    def __init__(self, item):
-        super().__init__(Java_Semantics, lambda *args: tuple([item]) + args)
-
-class ItemPersistence(_JavaCallProxy):
-    def __init__(self, item, service_id = None):
-        super().__init__(Java_PersistenceExtensions, lambda *args: tuple([item]) + args + tuple([] if service_id is None else [service_id]) )
-
-    def getStableMinMaxState(self, time_slot, end_time = None):
-        current_end_time = datetime.now().astimezone() if end_time is None else end_time
-        min_time = current_end_time - timedelta(seconds=time_slot)
-
-        min_value = max_value = None
-        value = duration = 0.0
-
-        entry = self.persistedState(current_end_time)
-
-        while True:
-            currentStartTime = entry.getTimestamp()
-
-            if currentStartTime < min_time:
-                currentStartTime = min_time
-
-            _duration = ( currentStartTime - current_end_time ).total_seconds()
-            _value = entry.getState().doubleValue()
-
-            if min_value == None or min_value > _value:
-                min_value = _value
-            if max_value == None or max_value < _value:
-                max_value = _value
-
-            duration = duration + _duration
-            value = value + ( _value * _duration )
-
-            current_end_time = currentStartTime - timedelta(microseconds=1)
-            if current_end_time < min_time:
-                break
-
-            entry = self.persistedState(current_end_time)
-
-        return [ Java_DecimalType(value / duration), Java_DecimalType(min_value), Java_DecimalType(max_value) ]
-
-    def getStableState(self, time_slot, end_time = None):
-        value, _, _ = self.getStableMinMaxState(time_slot, end_time)
-        return value
-
-class ItemMetadata():
-    def __init__(self, item):
-        self.item = item
-
-    @_Tracing.javacall
-    def get(self, namespace):
-        return METADATA_REGISTRY.get(Java_MetadataKey(namespace, self.item.getName()))
-
-    @_Tracing.javacall
-    def set(self, namespace, value, configuration=None):
-        if self.get(namespace) == None:
-            return METADATA_REGISTRY.add(Java_Metadata(Java_MetadataKey(namespace, self.item.getName()), value, configuration))
-        else:
-            return METADATA_REGISTRY.update(Java_Metadata(Java_MetadataKey(namespace, self.item.getName()), value, configuration))
-
-    @_Tracing.javacall
-    def remove(self, namespace):
-        return METADATA_REGISTRY.remove(Java_MetadataKey(namespace, self.item.getName()))
-
-    @_Tracing.javacall
-    def removeAll(self):
-        METADATA_REGISTRY.removeItemMetadata(self.item.getName())
-
 class Registry():
     @staticmethod
-    def getThings():
+    def getThings() -> list[Java_Thing]:
         return scope.things.getAll()
 
     @staticmethod
     @_Tracing.javacall
-    def getThing(uid):
+    def getThing(uid: str) -> Java_Thing:
         thing = scope.things.get(Java_ThingUID(uid))
         if thing is None:
             raise builtins.__wrapException__(NotFoundException("Thing {} not found".format(uid)),2)
@@ -447,7 +447,7 @@ class Registry():
 
     @staticmethod
     @_Tracing.javacall
-    def getChannel(uid):
+    def getChannel(uid: str) -> Java_Channel:
         channel = scope.things.getChannel(Java_ChannelUID(uid))
         if channel is None:
             raise builtins.__wrapException__(NotFoundException("Channel {} not found".format(uid)),2)
@@ -455,7 +455,7 @@ class Registry():
 
     @staticmethod
     @_Tracing.javacall
-    def getItemState(item_name, default = None):
+    def getItemState(item_name: str, default = None) -> Java_PrimitiveType:
         if isinstance(item_name, str):
             state = scope.items.get(item_name)
             if state is None:
@@ -467,7 +467,7 @@ class Registry():
 
     @staticmethod
     @_Tracing.javacall
-    def getItem(item_name):
+    def getItem(item_name: str) -> Item:
         if isinstance(item_name, str):
             try:
                 return scope.itemRegistry.getItem(item_name)
@@ -476,14 +476,14 @@ class Registry():
         raise builtins.__wrapException__(Exception("Unsupported parameter type {}".format(type(item_name))),2)
 
     @staticmethod
-    def resolveItem(item_or_item_name):
+    def resolveItem(item_or_item_name: tuple[str, Item]) -> Item:
         if isinstance(item_or_item_name, Item):
             return item_or_item_name
         return Registry.getItem(item_or_item_name)
 
     @staticmethod
     @_Tracing.javacall
-    def removeItem(item_name, recursive = False):
+    def removeItem(item_name: str, recursive: bool = False) -> Item:
         if isinstance(item_name, str):
             try:
                 item = scope.itemRegistry.getItem(item_name)
@@ -495,13 +495,13 @@ class Registry():
 
     @staticmethod
     @_Tracing.javacall
-    def addItem(item_name, item_type, item_config = {}):
+    def addItem(item_name: str, item_type: str, item_config = {}) -> Item:
         item = Registry._createItem(item_name, item_type, item_config)
         scope.itemRegistry.add(item)
         return Registry.getItem(item_name)
 
     @staticmethod
-    def _createItem(item_name, item_type, item_config = {}):
+    def _createItem(item_name: str, item_type: str, item_config = {}) -> Item:
         item_name = Item.buildSafeName(item_name)
 
         base_item = None
@@ -548,7 +548,7 @@ class Timer(threading.Timer):
             timer.join(5)
 
     @staticmethod
-    def createTimeout(duration, callback, args=[], kwargs={}, old_timer = None, max_count = 0 ):
+    def createTimeout(duration: int, callback, args=[], kwargs={}, old_timer = None, max_count = 0 ):
         if old_timer != None:
             old_timer.cancel()
             max_count = old_timer.max_count
@@ -563,7 +563,7 @@ class Timer(threading.Timer):
         timer.max_count = max_count
         return timer
 
-    def __init__(self, duration, callback, args=[], kwargs={}):
+    def __init__(self, duration: int, callback, args=[], kwargs={}):
         super().__init__(duration, self.handler, [args, kwargs])
         self.callback = callback
 
