@@ -43,12 +43,14 @@ BUNDLE_VERSION = versiontuple(".".join(osgi.bundleContext.getBundle().getVersion
 # **** LOGGING ****
 Java_LogFactory = java.type("org.slf4j.LoggerFactory")
 LOG_PREFIX = "org.openhab.automation.pythonscripting"
-NAME_PREFIX = ""
+FILENAME = NAME_PREFIX = None
 if 'javax.script.filename' in TopCallStackFrame:
-    file_package = os.path.basename(TopCallStackFrame['javax.script.filename'])[:-3]
+    FILENAME = TopCallStackFrame['javax.script.filename']
+    file_package = os.path.basename(FILENAME)[:-3]
     LOG_PREFIX = "{}.{}".format(LOG_PREFIX, file_package)
     NAME_PREFIX = "{}".format(file_package)
 elif 'ruleUID' in TopCallStackFrame:
+    FILENAME = None
     LOG_PREFIX = "{}.{}".format(LOG_PREFIX, TopCallStackFrame['ruleUID'])
     NAME_PREFIX = "{}".format(TopCallStackFrame['ruleUID'])
 logger = Java_LogFactory.getLogger( LOG_PREFIX )
@@ -135,12 +137,12 @@ class rule():
             if BUNDLE_VERSION < versiontuple("5.0.0"):
                 actionConfiguration = rule.getActions().get(0).getConfiguration()
                 actionConfiguration.put('type', 'application/x-python3')
-                if '__file__' in TopCallStackFrame:
-                    actionConfiguration.put('script', f"# text based rule in file: {TopCallStackFrame['__file__']}")
+                if FILENAME:
+                    actionConfiguration.put('script', f"# text based rule in file: {FILENAME}")
             else:
                 rule.getConfiguration().put('sourceType', 'application/x-python3')
-                if '__file__' in TopCallStackFrame:
-                    rule.getConfiguration().put('source', f"# text based rule in file: {TopCallStackFrame['__file__']}")
+                if FILENAME:
+                    rule.getConfiguration().put('source', f"# text based rule in file: {FILENAME}")
 
             clazz_or_function.logger.info("Rule '{}' initialised".format(name))
 
