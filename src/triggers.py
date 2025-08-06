@@ -8,7 +8,7 @@ from org.openhab.core.config.core import Configuration as Java_Configuration
 from org.openhab.core.types import Command as Java_Command, State as Java_State
 
 
-def validateUID(uid):
+def validateUID(uid: str) -> str:
     if uid is None:
         uid = uuid.uuid4().hex
     else:
@@ -30,7 +30,7 @@ class BaseTrigger():
             return cls(**match.groupdict())
 
 class ItemStateChangeTrigger(BaseTrigger):
-    def __init__(self, item_name, state=None, previous_state=None, trigger_name=None):
+    def __init__(self, item_name: str, state: Java_State = None, previous_state: Java_State = None, trigger_name: str = None):
         trigger_name = validateUID(trigger_name)
         configuration = {"itemName": item_name}
         if state is not None:
@@ -45,7 +45,7 @@ class ItemStateChangeTrigger(BaseTrigger):
     regex = r"^Item\s+(?P<item_name>\D\w*)\s+changed(?:\s+from\s+(?P<previous_state>'[^']+'|\S+))*(?:\s+to\s+(?P<state>'[^']+'|\S+))*$"
 
 class ItemStateUpdateTrigger(BaseTrigger):
-    def __init__(self, item_name, state=None, trigger_name=None):
+    def __init__(self, item_name: str, state: Java_State = None, trigger_name: str = None):
         trigger_name = validateUID(trigger_name)
         configuration = {"itemName": item_name}
         if state is not None:
@@ -57,7 +57,7 @@ class ItemStateUpdateTrigger(BaseTrigger):
     regex = r"^Item\s+(?P<item_name>\D\w*)\s+received\s+update(?:\s+(?P<state>'[^']+'|\S+))*$"
 
 class ItemCommandTrigger(BaseTrigger):
-    def __init__(self, item_name, command=None, trigger_name=None):
+    def __init__(self, item_name: str, command: Java_Command = None, trigger_name: str = None):
         trigger_name = validateUID(trigger_name)
         configuration = {"itemName": item_name}
         if command is not None:
@@ -70,7 +70,7 @@ class ItemCommandTrigger(BaseTrigger):
     regex = r"^Item\s+(?P<item_name>\D\w*)\s+received\s+command(?:\s+(?P<command>\w+))*$"
 
 class GroupStateChangeTrigger(BaseTrigger):
-    def __init__(self, group_name, state=None, previous_state=None, trigger_name=None):
+    def __init__(self, group_name: str, state: Java_State = None, previous_state: Java_State = None, trigger_name: str = None):
         trigger_name = validateUID(trigger_name)
         configuration = {"groupName": group_name}
         if state is not None:
@@ -86,7 +86,7 @@ class GroupStateChangeTrigger(BaseTrigger):
     regex = r"^Member\s+of\s+(?P<group_name>\D\w*)\s+changed(?:\s+from\s+(?P<previous_state>'[^']+'|\S+))*(?:\s+to\s+(?P<state>'[^']+'|\S+))*$"
 
 class GroupStateUpdateTrigger(BaseTrigger):
-    def __init__(self, group_name, state=None, trigger_name=None):
+    def __init__(self, group_name: str, state: Java_State = None, trigger_name: str = None):
         trigger_name = validateUID(trigger_name)
         configuration = {"groupName": group_name}
         if state is not None:
@@ -98,7 +98,7 @@ class GroupStateUpdateTrigger(BaseTrigger):
     regex = r"^Member\s+of\s+(?P<group_name>\D\w*)\s+received\s+update(?:\s+(?P<state>'[^']+'|\S+))*$"
 
 class GroupCommandTrigger(BaseTrigger):
-    def __init__(self, group_name, command=None, trigger_name=None):
+    def __init__(self, group_name: str, command: Java_Command = None, trigger_name: str = None):
         trigger_name = validateUID(trigger_name)
         configuration = {"groupName": group_name}
         if command is not None:
@@ -110,7 +110,7 @@ class GroupCommandTrigger(BaseTrigger):
     regex = r"^Member\s+of\s+(?P<group_name>\D\w*)\s+received\s+command(?:\s+(?P<command>\w+))*$"
 
 class ThingStatusUpdateTrigger(BaseTrigger):
-    def __init__(self, thing_uid, status=None, trigger_name=None):
+    def __init__(self, thing_uid: str, status: str = None, trigger_name: str = None):
         trigger_name = validateUID(trigger_name)
         configuration = {"thingUID": thing_uid}
         if status is not None:
@@ -122,7 +122,7 @@ class ThingStatusUpdateTrigger(BaseTrigger):
     regex = r"^Thing\s+(?P<thing_uid>\D\S*)\s+received\s+update(?:\s+(?P<status>\w+))*$"
 
 class ThingStatusChangeTrigger(BaseTrigger):
-    def __init__(self, thing_uid, status=None, previous_status=None, trigger_name=None):
+    def __init__(self, thing_uid: str, status: str = None, previous_status: str = None, trigger_name: str = None):
         trigger_name = validateUID(trigger_name)
         configuration = {"thingUID": thing_uid}
         if status is not None:
@@ -136,7 +136,7 @@ class ThingStatusChangeTrigger(BaseTrigger):
     regex = r"^Thing\s+(?P<thing_uid>\D\S*)\s+changed(?:\s+from\s+(?P<previous_status>\w+))*(?:\s+to\s+(?P<status>\w+))*$"
 
 class ChannelEventTrigger(BaseTrigger):
-    def __init__(self, channel_uid, event=None, trigger_name=None):
+    def __init__(self, channel_uid: str, event=None, trigger_name: str = None):
         trigger_name = validateUID(trigger_name)
         configuration = {"channelUID": channel_uid}
         if event is not None:
@@ -148,7 +148,7 @@ class ChannelEventTrigger(BaseTrigger):
     regex = r"^Channel\s+\"*(?P<channel_uid>\D\S*)\"*\s+triggered(?:\s+(?P<event>\w+))*$"
 
 class SystemStartlevelTrigger(BaseTrigger):
-    def __init__(self, startlevel, trigger_name=None):
+    def __init__(self, startlevel: int, trigger_name: str = None):
         trigger_name = validateUID(trigger_name)
         configuration = {"startlevel": startlevel}
         self.raw_trigger = Java_TriggerBuilder.create().withId(trigger_name).withTypeUID("core.SystemStartlevelTrigger").withConfiguration(Java_Configuration(configuration)).build()
@@ -165,7 +165,7 @@ class SystemStartlevelTrigger(BaseTrigger):
             return SystemStartlevelTrigger(startlevel=startlevel)
 
 class GenericCronTrigger(BaseTrigger):
-    def __init__(self, cron_expression, trigger_name=None):
+    def __init__(self, cron_expression: str, trigger_name: str = None):
         trigger_name = validateUID(trigger_name)
         configuration = {'cronExpression': cron_expression}
         self.raw_trigger = Java_TriggerBuilder.create().withId(trigger_name).withTypeUID("timer.GenericCronTrigger").withConfiguration(Java_Configuration(configuration)).build()
@@ -192,7 +192,7 @@ class GenericCronTrigger(BaseTrigger):
             return GenericCronTrigger(cron_expression=cronExpression)
 
 class TimeOfDayTrigger(BaseTrigger):
-    def __init__(self, time, trigger_name=None):
+    def __init__(self, time: str, trigger_name: str = None):
         trigger_name = validateUID(trigger_name)
         configuration = {"time": time}
         self.raw_trigger = Java_TriggerBuilder.create().withId(trigger_name).withTypeUID("timer.TimeOfDayTrigger").withConfiguration(Java_Configuration(configuration)).build()
@@ -202,7 +202,7 @@ class TimeOfDayTrigger(BaseTrigger):
     regex = r"^Time\s+is\s+(?P<time>([01]\d|2[0-3]):[0-5]\d)$"
 
 class DateTimeTrigger(BaseTrigger):
-    def __init__(self, item_name, time_only = False, offset = 0, trigger_name=None):
+    def __init__(self, item_name: str, time_only = False, offset = 0, trigger_name: str = None):
         trigger_name = validateUID(trigger_name)
         configuration = {"itemName": item_name, "timeOnly": time_only, "offset": offset}
         self.raw_trigger = Java_TriggerBuilder.create().withId(trigger_name).withTypeUID("timer.DateTimeTrigger").withConfiguration(Java_Configuration(configuration)).build()
@@ -220,7 +220,7 @@ class DateTimeTrigger(BaseTrigger):
             return DateTimeTrigger(**params)
 
 class PWMTrigger(BaseTrigger):
-    def __init__(self, dutycycle_item, interval, min_duty_cycle, max_duty_cycle, dead_man_switch, trigger_name=None):
+    def __init__(self, dutycycle_item, interval, min_duty_cycle, max_duty_cycle, dead_man_switch, trigger_name: str = None):
         trigger_name = validateUID(trigger_name)
         configuration = {
             "dutycycleItem": dutycycle_item,
@@ -232,7 +232,7 @@ class PWMTrigger(BaseTrigger):
         self.raw_trigger = Java_TriggerBuilder.create().withId(trigger_name).withTypeUID("pwm.PWMTrigger").withConfiguration(Java_Configuration(configuration)).build()
 
 class GenericEventTrigger(BaseTrigger):
-    def __init__(self, event_source, event_types, event_topic="*/*", trigger_name=None):
+    def __init__(self, event_source, event_types, event_topic="*/*", trigger_name: str = None):
         trigger_name = validateUID(trigger_name)
         self.raw_trigger = Java_TriggerBuilder.create().withId(trigger_name).withTypeUID("core.GenericEventTrigger").withConfiguration(Java_Configuration({
             "topic": event_topic,
@@ -241,7 +241,7 @@ class GenericEventTrigger(BaseTrigger):
         })).build()
 
 class ItemEventTrigger(BaseTrigger):
-    def __init__(self, event_types, item_name=None, trigger_name=None):
+    def __init__(self, event_types, item_name=None, trigger_name: str = None):
         trigger_name = validateUID(trigger_name)
         self.raw_trigger = Java_TriggerBuilder.create().withId(trigger_name).withTypeUID("core.GenericEventTrigger").withConfiguration(Java_Configuration({
             "topic": "*/items/*",
@@ -261,7 +261,7 @@ class ItemEventTrigger(BaseTrigger):
             return ItemEventTrigger(event_types="Item" + match.group('action').capitalize() + "Event")
 
 class ThingEventTrigger(BaseTrigger):
-    def __init__(self, event_types, thing_uid=None, trigger_name=None):
+    def __init__(self, event_types, thing_uid: str = None, trigger_name: str = None):
         trigger_name = validateUID(trigger_name)
         self.raw_trigger = Java_TriggerBuilder.create().withId(trigger_name).withTypeUID("core.GenericEventTrigger").withConfiguration(Java_Configuration({
             "topic": "*/things/*",

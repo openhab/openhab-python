@@ -1,5 +1,5 @@
 import builtins
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
 from polyglot import ForeignNone, ForeignObject, interop_type
 
@@ -57,6 +57,8 @@ elif 'ruleUID' in TopCallStackFrame:
 logger = Java_LogFactory.getLogger( LOG_PREFIX )
 # *****************************************************************
 
+__all__ = ["rule", "logger", "Registry", "Timer"]
+
 class NotFoundException(Exception):
     pass
 
@@ -74,7 +76,7 @@ class rule():
             self.name = None
             self(name)
 
-    def __call__(self, clazz_or_function):
+    def __call__(self, clazz_or_function: tuple[Callable, object]):
         proxy = self
 
         rule_isfunction = isfunction(clazz_or_function)
@@ -149,7 +151,7 @@ class rule():
 
         return rule_obj
 
-    def executeWrapper(self, rule_obj, rule_isfunction, module, input):
+    def executeWrapper(self, rule_obj: tuple[Callable, object], rule_isfunction: bool, module: dict[str, any], input: dict[str, any]):
         try:
             start_time = time.perf_counter()
 
@@ -181,11 +183,11 @@ class rule():
 
 class _Tracing():
     @staticmethod
-    def processMissingAttribute(cls, name):
+    def processMissingAttribute(cls: str, name: str):
         raise builtins.__wrapException__(AttributeError("Java instance of '{}' has no attribute '{}'".format(cls, name)), 2)
 
     @staticmethod
-    def getAttributeWrapper(attr, *args):
+    def getAttributeWrapper(attr: any, *args: any):
         try:
             return attr(*args)
         except TypeError as e:
@@ -194,11 +196,11 @@ class _Tracing():
             raise e
 
     @staticmethod
-    def foreignNoneFallback(self, name):
+    def foreignNoneFallback(self, name: str):
         raise builtins.__wrapException__(AttributeError("None object has no attribute '{}'".format(name)), 1)
 
     @staticmethod
-    def javacall(function):
+    def javacall(function: Callable):
         def wrap(*args, **kwargs):
             try:
                 return function(*args, **kwargs)
@@ -209,11 +211,11 @@ class _Tracing():
 ForeignNone.__getattr__ = _Tracing.foreignNoneFallback
 
 class _JavaCallProxy:
-    def __init__(self, proxy, callback):
+    def __init__(self, proxy: Java_Object, callback: Callable):
         self.proxy = proxy
         self.callback = callback
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str):
         try:
             attr = getattr(self.proxy, name)
             if callable(attr) and java.is_function(attr):
@@ -222,12 +224,154 @@ class _JavaCallProxy:
         except AttributeError as e:
             _Tracing.processMissingAttribute(self.proxy, name)
 
+@interop_type(Java_Object)
+class Object:
+    def __getattribute__(self, name: str):
+        attr = super().__getattribute__(name)
+        if callable(attr) and java.is_function(attr):
+            return lambda *args, **kwargs: _Tracing.getAttributeWrapper( attr, *args )
+        return attr
+
+    def __getattr__(self, name: str):
+        _Tracing.processMissingAttribute(self.getClass(), name)
+
+@interop_type(Java_Instant)
+class Instant(datetime):
+    def __new__(cls, year: int, month: int = None, day: int = None, hour: int = 0, minute: int = 0, second: int = 0,
+                microsecond=0, tzinfo=None, *, fold=0):
+        return datetime(year=year, month=month, day=day, hour=hour, minute=minute, second=second, microsecond=microsecond, tzinfo=tzinfo, fold=fold)
+
+    def __getattribute__(self, name: str):
+        #print(name)
+        match name:
+            case "_year": return super().getYear()
+            case "_month": return super().getMonthValue()
+            case "_day": return super().getDayOfMonth()
+            case "_hour": return super().getHour()
+            case "_minute": return super().getMinute()
+            case "_second": return super().getSecond()
+            case "_microsecond": return int(super().getNano() / 1000)
+            case "_tzinfo": return None
+            case "_hashcode": return -1
+            case "_fold": return 0
+        return super().__getattribute__(name)
+
+    def __hash__(self):
+        return hash(self._getstate())
+
+@interop_type(Java_ZonedDateTime)
+class DateTime(Instant):
+    def __getattribute__(self, name: str):
+        match name:
+            case "_tzinfo": return timezone(timedelta(seconds=super().getOffset().getTotalSeconds()), super().getZone().getId())
+        return super().__getattribute__(name)
+
+@interop_type(Java_Item)
+class Item(Java_Item if TYPE_CHECKING else object):
+    @_Tracing.javacall
+    def postUpdate(self, state: tuple[Java_Number, Java_State, str]):
+        scope.events.postUpdate(self, state)
+
+    def postUpdateIfDifferent(self, state: tuple[Java_Number, Java_State, str]) -> bool:
+        if not Item._checkIfDifferent(self.getState(), state):
+            return False
+        self.postUpdate(state)
+        return True
+
+    @_Tracing.javacall
+    def sendCommand(self, command: tuple[Java_Number, Java_Command, str]):
+        scope.events.sendCommand(self, command)
+
+    def sendCommandIfDifferent(self, command: tuple[Java_Number, Java_Command, str]) -> bool:
+        if not Item._checkIfDifferent(self.getState(), command):
+            return False
+        self.sendCommand(command)
+        return True
+
+    @_Tracing.javacall
+    def getThings(self) -> list[Java_Thing]:
+        return ITEM_CHANNEL_LINK_REGISTRY.getBoundThings(self.getName())
+
+    @_Tracing.javacall
+    def getChannels(self) -> list[Java_Channel]:
+        return list(map(lambda uid: Registry.getChannel(uid.getAsString()), ITEM_CHANNEL_LINK_REGISTRY.getBoundChannels(self.getName())))
+
+    @_Tracing.javacall
+    def getChannelUIDs(self) -> list[str]:
+        return ITEM_CHANNEL_LINK_REGISTRY.getBoundChannels(self.getName())
+
+    @_Tracing.javacall
+    def getLinks(self) -> list[Java_ItemChannelLink]:
+        return ITEM_CHANNEL_LINK_REGISTRY.getLinks(self.getName())
+
+    @_Tracing.javacall
+    def link(self, channel_uid: str, link_config: dict[str, str] = {}) -> Java_ItemChannelLink:
+        link = Java_ItemChannelLink(self.getName(), Java_ChannelUID(channel_uid), Configuration(link_config))
+        links = [l for l in self.getLinks() if l.getLinkedUID().getAsString() == channel_uid]
+        if len(links) > 0:
+            if not links[0].getConfiguration().equals(link.getConfiguration()):
+                ITEM_CHANNEL_LINK_REGISTRY.update(link)
+        else:
+            ITEM_CHANNEL_LINK_REGISTRY.add(link)
+        return link
+
+    @_Tracing.javacall
+    def unlink(self, channel_uid: str) -> Java_ItemChannelLink:
+        links = [l for l in self.getLinks() if l.getLinkedUID().getAsString() == channel_uid]
+        if len(links) > 0:
+            ITEM_CHANNEL_LINK_REGISTRY.remove(links[0].getUID())
+            return links[0]
+        raise NotFoundException("Link {} not found".format(channel_uid))
+
+    def getPersistence(self, service_id: str = None) -> 'ItemPersistence':
+        return ItemPersistence(self, service_id)
+
+    def getSemantic(self) -> 'ItemSemantic':
+        return ItemSemantic(self)
+
+    def getMetadata(self) -> 'ItemMetadata':
+        return ItemMetadata(self)
+
+    @staticmethod
+    def buildSafeName(s: str):
+        # Remove quotes and replace non-alphanumeric with underscores
+        return ''.join([c if c.isalnum() else '_' for c in s.replace('"', '').replace("'", '')])
+
+    @staticmethod
+    def _checkIfDifferent(current_state: any, new_state: any):
+        if not java.instanceof(current_state, Java_UnDefType):
+            if java.instanceof(current_state, Java_PercentType):
+                if isinstance(new_state, str):
+                    if new_state == "UP":
+                        new_state = 0
+                    if new_state == "DOWN":
+                        new_state = 100
+                elif java.instanceof(new_state, Java_UpDownType):
+                    new_state = (0 if new_state.toFullString() == "UP" else 100)
+
+            if java.instanceof(new_state, Java_PrimitiveType):
+                new_state = new_state.toFullString()
+            elif isinstance(new_state, datetime):
+                new_state = new_state.isoformat()
+            else:
+                new_state = str(new_state)
+
+            if java.instanceof(current_state, Java_PrimitiveType):
+                current_state = current_state.toFullString()
+            elif isinstance(current_state, datetime):
+                current_state = current_state.isoformat()
+            else:
+                current_state = str(current_state)
+
+            return current_state != new_state
+        return True
+
 class ItemSemantic(Java_Semantics if TYPE_CHECKING else _JavaCallProxy):
-    def __init__(self, item):
+    def __init__(self, item: Item):
         super().__init__(Java_Semantics, lambda *args: tuple([item]) + args)
 
 class ItemPersistence(Java_PersistenceExtensions if TYPE_CHECKING else _JavaCallProxy):
-    def __init__(self, item, service_id = None):
+    def __init__(self, item: Item, service_id: str = None):
         super().__init__(Java_PersistenceExtensions, lambda *args: tuple([item]) + args + tuple([] if service_id is None else [service_id]) )
 
     def getStableMinMaxState(self, time_slot: int, end_time: datetime = None) -> tuple[Java_DecimalType,Java_DecimalType,Java_DecimalType]:
@@ -291,148 +435,6 @@ class ItemMetadata():
     def removeAll(self):
         METADATA_REGISTRY.removeItemMetadata(self.item.getName())
 
-@interop_type(Java_Object)
-class Object:
-    def __getattribute__(self, name):
-        attr = super().__getattribute__(name)
-        if callable(attr) and java.is_function(attr):
-            return lambda *args, **kwargs: _Tracing.getAttributeWrapper( attr, *args )
-        return attr
-
-    def __getattr__(self, name):
-        _Tracing.processMissingAttribute(self.getClass(), name)
-
-@interop_type(Java_Instant)
-class Instant(datetime):
-    def __new__(cls, year, month=None, day=None, hour=0, minute=0, second=0,
-                microsecond=0, tzinfo=None, *, fold=0):
-        return datetime(year=year, month=month, day=day, hour=hour, minute=minute, second=second, microsecond=microsecond, tzinfo=tzinfo, fold=fold)
-
-    def __getattribute__(self, name):
-        #print(name)
-        match name:
-            case "_year": return super().getYear()
-            case "_month": return super().getMonthValue()
-            case "_day": return super().getDayOfMonth()
-            case "_hour": return super().getHour()
-            case "_minute": return super().getMinute()
-            case "_second": return super().getSecond()
-            case "_microsecond": return int(super().getNano() / 1000)
-            case "_tzinfo": return None
-            case "_hashcode": return -1
-            case "_fold": return 0
-        return super().__getattribute__(name)
-
-    def __hash__(self):
-        return hash(self._getstate())
-
-@interop_type(Java_ZonedDateTime)
-class DateTime(Instant):
-    def __getattribute__(self, name):
-        match name:
-            case "_tzinfo": return timezone(timedelta(seconds=super().getOffset().getTotalSeconds()), super().getZone().getId())
-        return super().__getattribute__(name)
-
-@interop_type(Java_Item)
-class Item(Java_Item if TYPE_CHECKING else object):
-    @_Tracing.javacall
-    def postUpdate(self, state: tuple[Java_Number, Java_State, str]):
-        scope.events.postUpdate(self, state)
-
-    def postUpdateIfDifferent(self, state: tuple[Java_Number, Java_State, str]) -> bool:
-        if not Item._checkIfDifferent(self.getState(), state):
-            return False
-        self.postUpdate(state)
-        return True
-
-    @_Tracing.javacall
-    def sendCommand(self, command: tuple[Java_Number, Java_Command, str]):
-        scope.events.sendCommand(self, command)
-
-    def sendCommandIfDifferent(self, command: tuple[Java_Number, Java_Command, str]) -> bool:
-        if not Item._checkIfDifferent(self.getState(), command):
-            return False
-        self.sendCommand(command)
-        return True
-
-    @_Tracing.javacall
-    def getThings(self) -> list[Java_Thing]:
-        return ITEM_CHANNEL_LINK_REGISTRY.getBoundThings(self.getName())
-
-    @_Tracing.javacall
-    def getChannels(self) -> list[Java_Channel]:
-        return list(map(lambda uid: Registry.getChannel(uid.getAsString()), ITEM_CHANNEL_LINK_REGISTRY.getBoundChannels(self.getName())))
-
-    @_Tracing.javacall
-    def getChannelUIDs(self) -> list[str]:
-        return ITEM_CHANNEL_LINK_REGISTRY.getBoundChannels(self.getName())
-
-    @_Tracing.javacall
-    def getLinks(self) -> list[Java_ItemChannelLink]:
-        return ITEM_CHANNEL_LINK_REGISTRY.getLinks(self.getName())
-
-    @_Tracing.javacall
-    def link(self, channel_uid: str, link_config = {}) -> Java_ItemChannelLink:
-        link = Java_ItemChannelLink(self.getName(), Java_ChannelUID(channel_uid), Configuration(link_config))
-        links = [l for l in self.getLinks() if l.getLinkedUID().getAsString() == channel_uid]
-        if len(links) > 0:
-            if not links[0].getConfiguration().equals(link.getConfiguration()):
-                ITEM_CHANNEL_LINK_REGISTRY.update(link)
-        else:
-            ITEM_CHANNEL_LINK_REGISTRY.add(link)
-        return link
-
-    @_Tracing.javacall
-    def unlink(self, channel_uid: str) -> Java_ItemChannelLink:
-        links = [l for l in self.getLinks() if l.getLinkedUID().getAsString() == channel_uid]
-        if len(links) > 0:
-            ITEM_CHANNEL_LINK_REGISTRY.remove(links[0].getUID())
-            return links[0]
-        raise NotFoundException("Link {} not found".format(channel_uid))
-
-    def getPersistence(self, service_id: str = None) -> ItemPersistence:
-        return ItemPersistence(self, service_id)
-
-    def getSemantic(self) -> ItemSemantic:
-        return ItemSemantic(self)
-
-    def getMetadata(self) -> ItemMetadata:
-        return ItemMetadata(self)
-
-    @staticmethod
-    def buildSafeName(s):
-        # Remove quotes and replace non-alphanumeric with underscores
-        return ''.join([c if c.isalnum() else '_' for c in s.replace('"', '').replace("'", '')])
-
-    @staticmethod
-    def _checkIfDifferent(current_state, new_state):
-        if not java.instanceof(current_state, Java_UnDefType):
-            if java.instanceof(current_state, Java_PercentType):
-                if isinstance(new_state, str):
-                    if new_state == "UP":
-                        new_state = 0
-                    if new_state == "DOWN":
-                        new_state = 100
-                elif java.instanceof(new_state, Java_UpDownType):
-                    new_state = (0 if new_state.toFullString() == "UP" else 100)
-
-            if java.instanceof(new_state, Java_PrimitiveType):
-                new_state = new_state.toFullString()
-            elif isinstance(new_state, datetime):
-                new_state = new_state.isoformat()
-            else:
-                new_state = str(new_state)
-
-            if java.instanceof(current_state, Java_PrimitiveType):
-                current_state = current_state.toFullString()
-            elif isinstance(current_state, datetime):
-                current_state = current_state.isoformat()
-            else:
-                current_state = str(current_state)
-
-            return current_state != new_state
-        return True
-
 class Registry():
     @staticmethod
     def getThings() -> list[Java_Thing]:
@@ -456,25 +458,25 @@ class Registry():
 
     @staticmethod
     @_Tracing.javacall
-    def getItemState(item_name: str, default = None) -> Java_PrimitiveType:
-        if isinstance(item_name, str):
-            state = scope.items.get(item_name)
-            if state is None:
-                raise builtins.__wrapException__(NotFoundException("Item state for {} not found".format(item_name)),2)
-            if default is not None and java.instanceof(state, Java_UnDefType):
-                state = default
-            return state
-        raise builtins.__wrapException__(Exception("Unsupported parameter type {}".format(type(item_name))),2)
+    def getItemState(item_name: str, default: Java_PrimitiveType = None) -> Java_PrimitiveType:
+        if not isinstance(item_name, str):
+            raise builtins.__wrapException__(Exception("Unsupported parameter type {}".format(type(item_name))),2)
+        state = scope.items.get(item_name)
+        if state is None:
+            raise builtins.__wrapException__(NotFoundException("Item state for {} not found".format(item_name)),2)
+        if default is not None and java.instanceof(state, Java_UnDefType):
+            state = default
+        return state
 
     @staticmethod
     @_Tracing.javacall
     def getItem(item_name: str) -> Item:
-        if isinstance(item_name, str):
-            try:
-                return scope.itemRegistry.getItem(item_name)
-            except Java_ItemNotFoundException:
-                raise builtins.__wrapException__(NotFoundException("Item {} not found".format(item_name)),2)
-        raise builtins.__wrapException__(Exception("Unsupported parameter type {}".format(type(item_name))),2)
+        if not isinstance(item_name, str):
+            raise builtins.__wrapException__(Exception("Unsupported parameter type {}".format(type(item_name))),2)
+        try:
+            return scope.itemRegistry.getItem(item_name)
+        except Java_ItemNotFoundException:
+            raise builtins.__wrapException__(NotFoundException("Item {} not found".format(item_name)),2)
 
     @staticmethod
     def resolveItem(item_or_item_name: tuple[str, Item]) -> Item:
@@ -485,24 +487,24 @@ class Registry():
     @staticmethod
     @_Tracing.javacall
     def removeItem(item_name: str, recursive: bool = False) -> Item:
-        if isinstance(item_name, str):
-            try:
-                item = scope.itemRegistry.getItem(item_name)
-                scope.itemRegistry.remove(item_name, recursive)
-                return item
-            except Java_ItemNotFoundException:
-                raise builtins.__wrapException__(NotFoundException("Item {} not found".format(item_name)),2)
-        raise builtins.__wrapException__(Exception("Unsupported parameter type {}".format(type(item_name))),2)
+        if not isinstance(item_name, str):
+            raise builtins.__wrapException__(Exception("Unsupported parameter type {}".format(type(item_name))),2)
+        try:
+            item = scope.itemRegistry.getItem(item_name)
+            scope.itemRegistry.remove(item_name, recursive)
+            return item
+        except Java_ItemNotFoundException:
+            raise builtins.__wrapException__(NotFoundException("Item {} not found".format(item_name)),2)
 
     @staticmethod
     @_Tracing.javacall
-    def addItem(item_name: str, item_type: str, item_config = {}) -> Item:
+    def addItem(item_name: str, item_type: str, item_config: dict[str, str] = {}) -> Item:
         item = Registry._createItem(item_name, item_type, item_config)
         scope.itemRegistry.add(item)
         return Registry.getItem(item_name)
 
     @staticmethod
-    def _createItem(item_name: str, item_type: str, item_config = {}) -> Item:
+    def _createItem(item_name: str, item_type: str, item_config: dict[str, str] = {}) -> Item:
         item_name = Item.buildSafeName(item_name)
 
         base_item = None
@@ -549,7 +551,7 @@ class Timer(threading.Timer):
             timer.join(5)
 
     @staticmethod
-    def createTimeout(duration: int, callback, args=[], kwargs={}, old_timer = None, max_count = 0 ):
+    def createTimeout(duration: int, callback: Callable, args: any =[], kwargs: any ={}, old_timer: 'Timer' = None, max_count: int = 0 ):
         if old_timer != None:
             old_timer.cancel()
             max_count = old_timer.max_count
@@ -564,11 +566,11 @@ class Timer(threading.Timer):
         timer.max_count = max_count
         return timer
 
-    def __init__(self, duration: int, callback, args=[], kwargs={}):
+    def __init__(self, duration: int, callback: Callable, args: any =[], kwargs: any ={}):
         super().__init__(duration, self.handler, [args, kwargs])
         self.callback = callback
 
-    def handler(self, args=[], kwargs={}):
+    def handler(self, args: any =[], kwargs: any ={}):
         try:
             self.callback(*args, **kwargs)
             try:

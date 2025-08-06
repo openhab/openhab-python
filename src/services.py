@@ -1,9 +1,12 @@
+from typing import TypeVar
+
 from scope import osgi
 
 
 BUNDLE_CONTEXT = osgi.bundleContext
 
-def getService(class_or_name):
+Java_ServiceReference = TypeVar("org.osgi.framework.ServiceReference")
+def getService(class_or_name) -> Java_ServiceReference:
     if BUNDLE_CONTEXT:
         classname = class_or_name.getName() if isinstance(class_or_name, type) else class_or_name
         ref = BUNDLE_CONTEXT.getServiceReference(classname)
@@ -11,7 +14,7 @@ def getService(class_or_name):
     else:
         return None
 
-def findService(class_name, service_filter):
+def findService(class_name, service_filter) -> list[Java_ServiceReference]:
     if BUNDLE_CONTEXT:
         references = BUNDLE_CONTEXT.getServiceReferences(class_name, service_filter)
         if references:
