@@ -1,5 +1,5 @@
 import builtins
-from typing import TYPE_CHECKING, Callable, TypeVar
+from typing import TYPE_CHECKING, Callable, Union
 
 from polyglot import ForeignNone, ForeignObject, interop_type
 
@@ -76,7 +76,7 @@ class rule():
             self.name = None
             self(name)
 
-    def __call__(self, clazz_or_function: Callable | object):
+    def __call__(self, clazz_or_function: Union[Callable, object]):
         proxy = self
 
         rule_isfunction = isfunction(clazz_or_function)
@@ -151,7 +151,7 @@ class rule():
 
         return rule_obj
 
-    def executeWrapper(self, rule_obj: Callable | object, rule_isfunction: bool, module: dict[str, any], input: dict[str, any]):
+    def executeWrapper(self, rule_obj: Union[Callable, object], rule_isfunction: bool, module: dict[str, any], input: dict[str, any]):
         try:
             start_time = time.perf_counter()
 
@@ -269,20 +269,20 @@ class DateTime(Instant):
 @interop_type(Java_Item)
 class Item(Java_Item if TYPE_CHECKING else object):
     @_Tracing.javacall
-    def postUpdate(self, state: type(Java_State) | int | float | str):
+    def postUpdate(self, state: Union[Java_State, int, float, str]):
         scope.events.postUpdate(self, state)
 
-    def postUpdateIfDifferent(self, state: type(Java_State) | int | float | str) -> bool:
+    def postUpdateIfDifferent(self, state: Union[Java_State, int, float, str]) -> bool:
         if not Item._checkIfDifferent(self.getState(), state):
             return False
         self.postUpdate(state)
         return True
 
     @_Tracing.javacall
-    def sendCommand(self, command: type(Java_State) | int | float | str):
+    def sendCommand(self, command: Union[Java_State, int, float, str]):
         scope.events.sendCommand(self, command)
 
-    def sendCommandIfDifferent(self, command: type(Java_State) | int | float | str) -> bool:
+    def sendCommandIfDifferent(self, command: Union[Java_State, int, float, str]) -> bool:
         if not Item._checkIfDifferent(self.getState(), command):
             return False
         self.sendCommand(command)
@@ -479,7 +479,7 @@ class Registry():
             raise builtins.__wrapException__(NotFoundException("Item {} not found".format(item_name)),2)
 
     @staticmethod
-    def resolveItem(item_or_item_name: str | Item) -> Item:
+    def resolveItem(item_or_item_name: Union[Item, str]) -> Item:
         if isinstance(item_or_item_name, Item):
             return item_or_item_name
         return Registry.getItem(item_or_item_name)
