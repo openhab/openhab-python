@@ -301,11 +301,11 @@ class Item(Java_Item if TYPE_CHECKING else object):
         return ITEM_CHANNEL_LINK_REGISTRY.getBoundChannels(self.getName())
 
     @_Tracing.javacall
-    def getLinks(self) -> list[Java_ItemChannelLink]:
+    def getChannelLinks(self) -> list[Java_ItemChannelLink]:
         return ITEM_CHANNEL_LINK_REGISTRY.getLinks(self.getName())
 
     @_Tracing.javacall
-    def link(self, channel_uid: str, link_config: dict[str, str] = {}) -> Java_ItemChannelLink:
+    def linkChannel(self, channel_uid: str, link_config: dict[str, str] = {}) -> Java_ItemChannelLink:
         link = Java_ItemChannelLink(self.getName(), Java_ChannelUID(channel_uid), Configuration(link_config))
         links = [l for l in self.getLinks() if l.getLinkedUID().getAsString() == channel_uid]
         if len(links) > 0:
@@ -316,7 +316,7 @@ class Item(Java_Item if TYPE_CHECKING else object):
         return link
 
     @_Tracing.javacall
-    def unlink(self, channel_uid: str) -> Java_ItemChannelLink:
+    def unlinkChannel(self, channel_uid: str) -> Java_ItemChannelLink:
         links = [l for l in self.getLinks() if l.getLinkedUID().getAsString() == channel_uid]
         if len(links) > 0:
             ITEM_CHANNEL_LINK_REGISTRY.remove(links[0].getUID())
