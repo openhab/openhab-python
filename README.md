@@ -526,6 +526,8 @@ There is no need to import this class directly. It is returned as a result of th
 
 ### Threading & Timer
 
+Threads and timers are useful to run somthing in background. They are automaticalyl stopped/killed on script unload.
+
 ```python
 import threading
 
@@ -549,7 +551,7 @@ class MyCustomThread(threading.Thread):
 MyCustomThread().start()
 ```
 
-### Lifecycle hook to trigger something on script unload
+### Lifecycle hook
 
 A lifecycle hook can be used to cleanup or shutdown something, before a script is unloaded or reloaded
 
