@@ -57,7 +57,7 @@ elif 'ruleUID' in TopCallStackFrame:
 logger = Java_LogFactory.getLogger( LOG_PREFIX )
 # *****************************************************************
 
-__all__ = ["rule", "logger", "Registry", "Timer"]
+__all__ = ["rule", "logger", "Registry"]
 
 class NotFoundException(Exception):
     pass
@@ -536,64 +536,3 @@ class Registry():
         except Exception as e:
             logger.error('Failed to create Item: {}'.format(e))
             raise
-
-# Timer will not work in transformations scripts, because LIFECYLE_TRACKER cleanup will never run successfully
-class Timer(threading.Timer):
-    # could also be solved by storing it in a private cache => https://next.openhab.org/docs/configuration/jsr223.html
-    # because Timer & ScheduledFuture are canceled when a private cache is cleaned on unload or refresh
-    activeTimer = []
-    cleanupTrackerRegistered = False
-
-    @staticmethod
-    def _clean():
-        for timer in list(Timer.activeTimer):
-            timer.cancel()
-            timer.join(5)
-
-    @staticmethod
-    def createTimeout(duration: int, callback: Callable, args: any =[], kwargs: any ={}, old_timer: 'Timer' = None, max_count: int = 0 ):
-        if old_timer != None:
-            old_timer.cancel()
-            max_count = old_timer.max_count
-
-        max_count = max_count - 1
-        if max_count == 0:
-            callback(*args, **kwargs)
-            return None
-
-        timer = Timer(duration, callback, args, kwargs )
-        timer.start()
-        timer.max_count = max_count
-        return timer
-
-    def __init__(self, duration: int, callback: Callable, args: any =[], kwargs: any ={}):
-        super().__init__(duration, self.handler, [args, kwargs])
-        self.callback = callback
-
-    def handler(self, args: any =[], kwargs: any ={}):
-        try:
-            self.callback(*args, **kwargs)
-            try:
-                Timer.activeTimer.remove(self)
-            except ValueError:
-                # can happen when timer is executed and canceled at the same time
-                # could be solved with a LOCK, but this solution is more efficient, because it works without a LOCK
-                pass
-        except:
-            logger.error("{}".format(traceback.format_exc()))
-            raise
-
-    def start(self):
-        if self.is_alive():
-            return
-        if not Timer.cleanupTrackerRegistered:
-            scope.lifecycleTracker.addDisposeHook(Timer._clean)
-            Timer.cleanupTrackerRegistered = True
-        Timer.activeTimer.append(self)
-        super().start()
-
-    def cancel(self):
-        if not self.is_alive():
-            return
-        Timer.activeTimer.remove(self)
-        super().cancel()
