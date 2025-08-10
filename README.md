@@ -522,82 +522,44 @@ There is no need to import this class directly. It is returned as a result of th
 | remove                   | \<instance\>.remove(namespace)                                                        | [openHAB Metadata](https://www.openhab.org/javadoc/latest/org/openhab/core/items/metadata)          |
 | removeAll                | \<instance\>.removeAll()                                                              |                                                                                                     |
 
-### class Timer 
-
-```python
-from openhab import Timer
-```
-
-| Function                 | Usage                                                                                 | Description                                                                                         |
-| ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| createTimeout            | Timer.createTimeout(duration, callback, args=[], kwargs={}, old_timer = None, max_count = 0 ) | Create a timer that will run callback with arguments args and keyword arguments kwargs, after duration seconds have passed. If old_timer from e.g previous call is provided, it will be stopped if not already triggered. If max_count together with old_timer is provided, then 'max_count' times the old timer will be stopped and recreated, before the callback will be triggered immediately |
-
 ## Others
 
-### Threading
+### Threading & Timer
 
-Thread or timer objects must be registered in the lifecycleTracker to be cleaned during script unload. Otherwise they will exists forever.
+```python
+import threading
+
+def test():
+    print("Timer triggered after 5 seconds")
+
+threading.Timer(5, test).start()
+```
+
+
+```python
+import threading
+import time
+
+class MyCustomThread(threading.Thread):
+    def run(self):
+        while True:
+            print("Thread triggered")
+            time.sleep(5)
+
+MyCustomThread().start()
+```
+
+### Lifecycle hook to trigger something on script unload
+
+A lifecycle hook can be used to cleanup or shutdown something, before a script is unloaded or reloaded
 
 ```python
 import scope
-import threading
 
-class MyCustomTimer(threading.Timer):
-    def __init__(self, duration):
-        super().__init__(duration, self.callback)
-        scope.lifecycleTracker.addDisposeHook(self.shutdown)
+def shutdown():
+    print("Script is unloaded")
 
-    def callback(self):
-        print("timer triggered")
-
-    def shutdown(self):
-        if not self.is_alive():
-            return
-        self.cancel()
-        self.join()
-
-job = MyCustomTimer(60)
-job.start()
-```
-
-Timer objects, created via `openhab.Timer.createTimeout`, are registered automatically in the lifecycleTracker.
-
-```python
-from openhab import Timer
-
-def test():
-    print("timer triggered")
-
-Timer.createTimeout(60, test)
-```
-
-Below is a complex example of 2 sensor values that are expected to be transmitted in a certain time window (e.g. one after the other).
-
-After the first state change, the timer wait 5 seconds, before it updates the final target value.
-If the second value arrives before this time frame, the final target value is updated immediately.
-
-```python
-from openhab import rule, Registry
-from openhab.triggers import ItemStateChangeTrigger
-
-@rule(
-    triggers = [
-        ItemStateChangeTrigger("Room_Temperature_Value"),
-        ItemStateChangeTrigger("Room_Humidity_Value")
-    ]
-)
-class UpdateInfo:
-    def __init__(self):
-        self.update_timer = None
-    
-    def updateInfoMessage(self):
-        msg = "{}{} °C, {} %".format(Registry.getItemState("Room_Temperature_Value").format("%.1f"), Registry.getItemState("Room_Temperature_Value").format("%.0f"))
-        Registry.getItem("Room_Info").postUpdate(msg)
-        self.update_timer = None
-
-    def execute(self, module, input):
-        self.update_timer = Timer.createTimeout(5, self.updateInfoMessage, old_timer = self.update_timer, max_count=2 )
-
+scope.lifecycleTracker.addDisposeHook(shutdown)
 ```
 
 ### Python <=> Java conversion
