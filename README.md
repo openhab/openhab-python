@@ -531,10 +531,10 @@ Threads and timers are useful to run somthing in background. They are automatica
 ```python
 import threading
 
-def test():
-    print("Timer triggered after 5 seconds")
-
-threading.Timer(5, test).start()
+def timerTest():
+    print("Timer triggered")
+    threading.Timer(5, timerTest).start()
+threading.Timer(0, timerTest).start()
 ```
 
 
@@ -542,13 +542,11 @@ threading.Timer(5, test).start()
 import threading
 import time
 
-class MyCustomThread(threading.Thread):
-    def run(self):
-        while True:
-            print("Thread triggered")
-            time.sleep(5)
-
-MyCustomThread().start()
+def threadTest():
+    while True:
+        print("Thread triggered")
+        time.sleep(5)
+threading.Thread(target=threadTest).start()
 ```
 
 ### Lifecycle hook
