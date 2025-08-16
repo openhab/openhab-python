@@ -47,13 +47,13 @@ LOG_PREFIX = "org.openhab.automation.pythonscripting"
 FILENAME = NAME_PREFIX = None
 if 'javax.script.filename' in TopCallStackFrame:
     FILENAME = TopCallStackFrame['javax.script.filename']
-    file_package = os.path.basename(FILENAME)[:-3]
-    LOG_PREFIX = "{}.{}".format(LOG_PREFIX, file_package)
-    NAME_PREFIX = "{}".format(file_package)
-elif 'ruleUID' in TopCallStackFrame:
-    FILENAME = None
-    LOG_PREFIX = "{}.{}".format(LOG_PREFIX, TopCallStackFrame['ruleUID'])
-    NAME_PREFIX = "{}".format(TopCallStackFrame['ruleUID'])
+    uid = os.path.basename(FILENAME)[:-3]
+else:
+    # Backward compatible with openhab < 5.1
+    uid = TopCallStackFrame['ctx']['ruleUID'] if 'ctx' in TopCallStackFrame and 'ruleUID' in TopCallStackFrame['ctx'] else ( TopCallStackFrame['ruleUID'] if 'ruleUID' in TopCallStackFrame else None)
+if uid is not None:
+    LOG_PREFIX = "{}.{}".format(LOG_PREFIX, uid)
+    NAME_PREFIX = "{}".format(uid)
 logger = Java_LogFactory.getLogger( LOG_PREFIX )
 # *****************************************************************
 
