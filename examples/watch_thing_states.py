@@ -1,8 +1,7 @@
-from openhab import rule, logger, Registry
+from openhab import rule, logger, Registry, NotFoundException
 from openhab.triggers import when, onlyif, GenericEventTrigger
-from openhab.helper import NotInitialisedException
 
-from scope import ON, OFF
+import scope
 
 def setThingItemStatus(thinguid, status):
     thing = Registry.getThing(thinguid)
@@ -12,7 +11,7 @@ def setThingItemStatus(thinguid, status):
     try:
         logger.info("Looking for Item {}".format(item_name))
         item = Registry.getItem(item_name)
-    except NotInitialisedException as e:
+    except NotFoundException as e:
         logger.info("Creating Item {} not found in registry".format(item_name))
         itemConfig = {
             "name": item_name,
@@ -36,7 +35,7 @@ def ThingsStatusSwitchRule(module, input):
     event = input['event']
     offlineItems = event.getItemState().intValue()
     logger.info("There are {} offline Things".format(offlineItems))
-    Registry.getItem("Things_Offline_Switch").sendCommand("ON" if offlineItems > 0 else "OFF")
+    Registry.getItem("Things_Offline_Switch").sendCommand(scope.ON if offlineItems > 0 else scope.OFF)
 
 @rule(
     name = "Watch thing states",
