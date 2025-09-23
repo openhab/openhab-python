@@ -38,7 +38,7 @@ ITEM_BUILDER_FACTORY = getService("org.openhab.core.items.ItemBuilderFactory")
 ITEM_CHANNEL_LINK_REGISTRY = getService("org.openhab.core.thing.link.ItemChannelLinkRegistry")
 
 def versiontuple(v):
-    return tuple(map(int, (v.split("."))))
+    return tuple(map(lambda part: int(part) if part.isdigit() else 0, (v.split("."))))
 BUNDLE_VERSION = versiontuple(".".join(osgi.bundleContext.getBundle().getVersion().toString().split(".")[:3]))
 
 # **** LOGGING ****
