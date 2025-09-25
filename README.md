@@ -183,7 +183,7 @@ print("error message", file=sys.stderr)
 
 ```
 
-2. Using the logging module behaves like normal print statements, are prefixed with "org.openhab.automation.pythonscripting" and marked with log level INFO, ERROR, WARN ...
+2. Using the logger object behaves like normal print statements, are prefixed with "org.openhab.automation.pythonscripting" and marked with log level INFO, ERROR, WARN ...
 
 ```python
 from openhab import logger
@@ -195,7 +195,7 @@ logger.error("error message")
 logger.warn("warning message")
 ```
 
-3. In Addition, the rule based logging module, is prefixed with "org.openhab.automation.pythonscripting.\<RuleClassName\>"
+3. In Addition, the rule based logger object, is prefixed with "org.openhab.automation.pythonscripting.\<RuleClassName\>"
 
 ```python
 from openhab import rule
