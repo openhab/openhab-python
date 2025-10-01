@@ -23,7 +23,7 @@ class Timer(threading.Timer):
 
 #Below is a complex example of 2 sensor values that are expected to be transmitted in a certain time window (e.g. one after the other).
 
-#After the first state change, the timer wait 5 seconds, before it updates the final target value.
+#After the first state change, the timer waits 5 seconds, before it updates the final target value.
 #If the second value arrives before this time frame, the final target value is updated immediately.
 
 @rule(

@@ -332,7 +332,7 @@ from openhab.triggers import onlyif
 
 ### module scope
 
-The scope module encapsulates all [default jsr223 objects/presents](https://www.openhab.org/docs/configuration/jsr223.html#default-preset-importpreset-not-required) into a new object.
+The scope module encapsulates all [default jsr223 objects/presets](https://www.openhab.org/docs/configuration/jsr223.html#default-preset-importpreset-not-required) into a new object.
 You can use it like below
 
 ```python
@@ -353,7 +353,7 @@ import scope # this imports just the module
 print(scope.ON)
 ```
 
-You can also import additional [jsr223 presents](https://www.openhab.org/docs/configuration/jsr223.html#rulesimple-preset) like
+You can also import additional [jsr223 presets](https://www.openhab.org/docs/configuration/jsr223.html#rulesimple-preset) like
 
 ```python
 from scope import RuleSimple
