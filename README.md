@@ -24,7 +24,7 @@ log:set DEBUG org.openhab.automation.pythonscripting
 
 ### Rules
 
-Lets start with a simple rule
+Let’s start with a simple script
 
 ```python
 from openhab import rule
