@@ -51,7 +51,7 @@ class Test:
 ```
 
 **NOTE**
-By default, the scope, Registry and logger is automatically imported for UI based rules
+By default, the scope, Registry and logger are automatically imported for UI based rules.
  
 
 ### `PY` Transformation
@@ -88,7 +88,7 @@ Simple transformations can also be given as an inline script: `PY(|...)`, e.g. `
 It should start with the `|` character, quotes within the script may need to be escaped with a backslash `\` when used with another quoted string as in text configurations.
 
 **NOTE**
-By default, the scope, Registry and logger is automatically imported for `PY` Transformation scripts
+By default, the scope, Registry and logger are automatically imported for `PY` Transformation scripts.
 
 ## Examples 
 
@@ -526,7 +526,7 @@ There is no need to import this class directly. It is returned as a result of th
 
 ### Threading & Timer
 
-Threads and timers are useful to run somthing in background. They are automaticalyl stopped/killed on script unload.
+Threads and timers are useful to run something in background. They are automatically stopped/killed on script unload.
 
 ```python
 import threading
