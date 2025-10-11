@@ -392,7 +392,7 @@ but you should always use the short variant.
 
 | Class                    | Usage                                                                                 | Description                                                                                         |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| rule                     | @rule( name=None, description=None, tags=None, triggers=None, conditions=None, profile=None) | [Rule decorator](#decorator-rule) to wrap a custom class into a rule                         |
+| rule                     | @rule( uid=None, name=None, description=None, tags=None, triggers=None, conditions=None, profile=None) | [Rule decorator](#decorator-rule) to wrap a custom class into a rule                         |
 | logger                   | logger.info, logger.warn ...                                                          | Logger object with prefix 'org.automation.pythonscripting.{filename}'                               |
 | Registry                 | see [Registry](#class-registry) class                                                 | Static Registry class used to get items, things or channels                                         |
 | Timer                    | see [Timer](#class-timer) class                                                       | Static Timer class to create, start and stop timers                                                 |

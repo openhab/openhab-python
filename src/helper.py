@@ -4,6 +4,8 @@ from typing import TYPE_CHECKING, Callable, Union
 from polyglot import ForeignNone, ForeignObject, interop_type
 
 import java
+import hashlib
+import re
 import os
 import time
 import threading
@@ -63,7 +65,8 @@ class NotFoundException(Exception):
     pass
 
 class rule():
-    def __init__(self, name: str = None, description: str = None, tags: list[str] = None, triggers: list = None, conditions: list = None, runtime_measurement: bool = True, profile_code: bool = False):
+    def __init__(self, uid: str = None, name: str = None, description: str = None, tags: list[str] = None, triggers: list = None, conditions: list = None, runtime_measurement: bool = True, profile_code: bool = False):
+        self.uid = uid
         self.name = name
         self.description = description
         self.tags = tags
@@ -111,12 +114,18 @@ class rule():
         #register_interop_type(Java_SimpleRule, clazz)
         #subclass = type(clazz.__name__, (clazz, BaseSimpleRule,))
 
+        hash=hashlib.md5(file_package.encode('utf-8')).hexdigest()
+        name = "{}.{}".format(NAME_PREFIX, clazz_or_function.__name__) if proxy.name is None else proxy.name
+        uid = "{} {}".format(name, hash) if proxy.uid is None else proxy.uid
+        uid = re.sub(r"\W", "-", uid)
+
         # dummy helper to avoid "org.graalvm.polyglot.PolyglotException: java.lang.IllegalStateException: unknown type com.oracle.truffle.host.HostObject"
         class BaseSimpleRule(Java_SimpleRule):
+            def getUID(self):
+                return uid
+
             def execute(self, module, input):
                 proxy.executeWrapper(rule_obj, rule_isfunction, module, input)
-
-        name = "{}.{}".format(NAME_PREFIX, clazz_or_function.__name__) if proxy.name is None else proxy.name
 
         base_rule_obj = BaseSimpleRule()
         base_rule_obj.setName(name)
