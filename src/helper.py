@@ -65,16 +65,19 @@ class NotFoundException(Exception):
     pass
 
 class rule():
-    def __init__(self, uid: str = None, name: str = None, description: str = None, tags: list[str] = None, triggers: list = None, conditions: list = None, runtime_measurement: bool = True, profile_code: bool = False):
-        self.uid = uid
+    def __init__(self, name: str = None, description: str = None, tags: list[str] = None, triggers: list = None, conditions: list = None, uid: str = None, runtime_measurement: bool = True, profile_code: bool = False):
         self.name = name
         self.description = description
         self.tags = tags
         self.triggers = triggers
         self.conditions = conditions
+
+        self.uid = uid
+
         self.runtime_measurement = runtime_measurement
         self.profile_code = profile_code
 
+        # @rule is used as decorator without parameter. ("@rule" instead of "@rule()")
         if isfunction(name) or isclass(name):
             self.name = None
             self(name)
