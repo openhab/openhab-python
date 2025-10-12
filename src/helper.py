@@ -31,6 +31,7 @@ from org.openhab.core.library.types import DecimalType as Java_DecimalType, UpDo
 
 from java.time import ZonedDateTime as Java_ZonedDateTime, Instant as Java_Instant
 from java.lang import Object as Java_Object, Iterable as Java_Iterable, Exception as Java_Exception
+from java.util import UUID
 
 from scope import RuleSupport, osgi#, RuleSimple
 import scope
@@ -117,10 +118,13 @@ class rule():
         #register_interop_type(Java_SimpleRule, clazz)
         #subclass = type(clazz.__name__, (clazz, BaseSimpleRule,))
 
-        hash=hashlib.md5(file_package.encode('utf-8')).hexdigest()
         name = "{}.{}".format(NAME_PREFIX, clazz_or_function.__name__) if proxy.name is None else proxy.name
-        uid = "{} {}".format(name, hash) if proxy.uid is None else proxy.uid
-        uid = re.sub(r"\W", "-", uid)
+        if FILENAME:
+            hash=hashlib.md5(FILENAME.encode('utf-8')).hexdigest()
+            uid = "{} {}".format(name, hash) if proxy.uid is None else proxy.uid
+            uid = re.sub(r"\W", "-", uid)
+        else:
+            uid = UUID.randomUUID().toString()
 
         # dummy helper to avoid "org.graalvm.polyglot.PolyglotException: java.lang.IllegalStateException: unknown type com.oracle.truffle.host.HostObject"
         class BaseSimpleRule(Java_SimpleRule):
