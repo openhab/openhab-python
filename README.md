@@ -221,6 +221,25 @@ if !isinstance(state, scope.UnDefType):
     print("STATE: " + str(state))
 ```
 
+### Actions
+
+[Core Actions](#module-openhabactions) of openHAB can be used via the actions module
+
+```python
+from openhab.actions import HTTP
+
+print(HTTP.sendHttpGetRequest("https://www.openhab.org"))
+```
+
+Binding Actions like [MAIL](https://www.openhab.org/addons/bindings/mail/), however, must be used via the scope.actions module
+
+```python
+from scope import actions
+
+mailAction = actions.get("mail","mail:smtp:samplesmtp")
+mailAction.sendMail("mail@example.com", "Test subject", "This is the mail content.")
+```
+
 ## Decorators
 
 ### decorator @rule
@@ -399,14 +418,6 @@ but you should always use the short variant.
 
 ### module openhab.actions
 
-Core Actions of openHAB can be used via the actions module
-
-```python
-from openhab.actions import HTTP
-
-print(HTTP.sendHttpGetRequest("https://www.openhab.org"))
-```
-
 | Class                    | Usage                                                                                 | Description                                                                                         |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
 | Audio                    | see [openHAB Audio API](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/audio)      |                                                                          |
@@ -422,15 +433,6 @@ print(HTTP.sendHttpGetRequest("https://www.openhab.org"))
 | Transformation           | see [openHAB Transformation API](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/transformation) |                                                             |
 | Voice                    | see [openHAB Voice API](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/voice)      |                                                                          |
 | NotificationAction       |                                                                                       | e.g. NotificationAction.sendNotification("test@test.org", "Window is open")                         |
-
-Binding Actions like [MAIL](https://www.openhab.org/addons/bindings/mail/), however, must be used via the scope.actions module
-
-```python
-from scope import actions
-
-mailAction = actions.get("mail","mail:smtp:samplesmtp")
-mailAction.sendMail("mail@example.com", "Test subject", "This is the mail content.")
-```
 
 ### module openhab.triggers
 
