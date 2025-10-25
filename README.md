@@ -351,7 +351,7 @@ from openhab.triggers import onlyif
 
 ### module scope
 
-The scope module encapsulates all [default jsr223 objects/presets](https://www.openhab.org/docs/configuration/jsr223.html#default-preset-importpreset-not-required) into a new object.
+The module `scope` encapsulates all [default jsr223 objects/presets](https://www.openhab.org/docs/configuration/jsr223.html#default-preset-importpreset-not-required) into a new object.
 You can use it like below
 
 ```python
@@ -417,6 +417,8 @@ but you should always use the short variant.
 | Timer                    | see [Timer](#class-timer) class                                                       | Static Timer class to create, start and stop timers                                                 |
 
 ### module openhab.actions
+
+The `actions` module encapsulates [core actions](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/package-summary) of openHAB
 
 | Class                    | Usage                                                                                 | Description                                                                                         |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
