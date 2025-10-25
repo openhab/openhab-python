@@ -381,6 +381,7 @@ from scope import RuleFactories
 from scope import ScriptAction
 from scope import cache
 from scope import osgi
+from scope import actions
 ```
 
 Additionally you can import all Java classes from 'java.*' or 'org.openhab.*' package like
