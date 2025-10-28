@@ -362,6 +362,27 @@ class ItemStateCondition(BaseCondition):
 
             return ItemStateCondition(item_name=match.group('item_name'), operator=operator, state=match.group('state'))
 
+class ItemScriptCondition(BaseCondition):
+    def __init__(self, script: str, condition_name: str = None):
+        condition_name = validateUID(condition_name)
+        configuration = {
+            "type": "application/x-python3",
+            "script": script
+        }
+        if any(value is None for value in configuration.values()):
+            raise ValueError(u"Paramater invalid in call to ItemScriptCondition")
+
+        self.raw_condition = Java_ConditionBuilder.create().withId(condition_name).withTypeUID("script.ScriptCondition").withConfiguration(Java_Configuration(configuration)).build()
+
+    first_word = ["script"]
+    # @onlyif("Script Registry.getItem('TestItem').getState() == scope.ON")
+    regex = r"^Script\s+(?P<script>\w+)$"
+    @classmethod
+    def parse(cls, target):
+        match = re.match(cls.regex, target, re.IGNORECASE)
+        if match is not None:
+            return ItemStateCondition(script=match.group('script'))
+
 class EphemerisCondition(BaseCondition):
     def __init__(self, dayset: str, offset: int = 0, condition_name: str = None):
         condition_name = validateUID(condition_name)
