@@ -202,7 +202,7 @@ class TimeOfDayTrigger(BaseTrigger):
     regex = r"^Time\s+is\s+(?P<time>([01]\d|2[0-3]):[0-5]\d)$"
 
 class DateTimeTrigger(BaseTrigger):
-    def __init__(self, item_name: str, time_only = False, offset = 0, trigger_name: str = None):
+    def __init__(self, item_name: str, time_only: bool = False, offset: int = 0, trigger_name: str = None):
         trigger_name = validateUID(trigger_name)
         configuration = {"itemName": item_name, "timeOnly": time_only, "offset": offset}
         self.raw_trigger = Java_TriggerBuilder.create().withId(trigger_name).withTypeUID("timer.DateTimeTrigger").withConfiguration(Java_Configuration(configuration)).build()
@@ -220,7 +220,7 @@ class DateTimeTrigger(BaseTrigger):
             return DateTimeTrigger(**params)
 
 class PWMTrigger(BaseTrigger):
-    def __init__(self, dutycycle_item, interval, min_duty_cycle, max_duty_cycle, dead_man_switch, trigger_name: str = None):
+    def __init__(self, dutycycle_item: str, interval: int, min_duty_cycle: int, max_duty_cycle: int, dead_man_switch: int, trigger_name: str = None):
         trigger_name = validateUID(trigger_name)
         configuration = {
             "dutycycleItem": dutycycle_item,
@@ -232,7 +232,7 @@ class PWMTrigger(BaseTrigger):
         self.raw_trigger = Java_TriggerBuilder.create().withId(trigger_name).withTypeUID("pwm.PWMTrigger").withConfiguration(Java_Configuration(configuration)).build()
 
 class GenericEventTrigger(BaseTrigger):
-    def __init__(self, event_source, event_types, event_topic="*/*", trigger_name: str = None):
+    def __init__(self, event_source: str, event_types: str, event_topic: str = "*/*", trigger_name: str = None):
         trigger_name = validateUID(trigger_name)
         self.raw_trigger = Java_TriggerBuilder.create().withId(trigger_name).withTypeUID("core.GenericEventTrigger").withConfiguration(Java_Configuration({
             "topic": event_topic,
@@ -241,7 +241,7 @@ class GenericEventTrigger(BaseTrigger):
         })).build()
 
 class ItemEventTrigger(BaseTrigger):
-    def __init__(self, event_types, item_name=None, trigger_name: str = None):
+    def __init__(self, event_types: str, item_name: str = None, trigger_name: str = None):
         trigger_name = validateUID(trigger_name)
         self.raw_trigger = Java_TriggerBuilder.create().withId(trigger_name).withTypeUID("core.GenericEventTrigger").withConfiguration(Java_Configuration({
             "topic": "*/items/*",
@@ -261,7 +261,7 @@ class ItemEventTrigger(BaseTrigger):
             return ItemEventTrigger(event_types="Item" + match.group('action').capitalize() + "Event")
 
 class ThingEventTrigger(BaseTrigger):
-    def __init__(self, event_types, thing_uid: str = None, trigger_name: str = None):
+    def __init__(self, event_types: str, thing_uid: str = None, trigger_name: str = None):
         trigger_name = validateUID(trigger_name)
         self.raw_trigger = Java_TriggerBuilder.create().withId(trigger_name).withTypeUID("core.GenericEventTrigger").withConfiguration(Java_Configuration({
             "topic": "*/things/*",
@@ -338,12 +338,12 @@ class BaseCondition():
             return cls(**match.groupdict())
 
 class ItemStateCondition(BaseCondition):
-    def __init__(self, item_name, operator, state, condition_name=None):
+    def __init__(self, item_name: str, operator: str, state: Java_State = None, condition_name: str = None):
         condition_name = validateUID(condition_name)
         configuration = {
             "itemName": item_name,
             "operator": operator,
-            "state": state
+            "state": str(state) if java.instanceof(state, Java_State) else state
         }
         if any(value is None for value in configuration.values()):
             raise ValueError(u"Paramater invalid in call to ItemStateConditon")
@@ -363,7 +363,7 @@ class ItemStateCondition(BaseCondition):
             return ItemStateCondition(item_name=match.group('item_name'), operator=operator, state=match.group('state'))
 
 class EphemerisCondition(BaseCondition):
-    def __init__(self, dayset, offset=0, condition_name=None):
+    def __init__(self, dayset: str, offset: int = 0, condition_name: str = None):
         condition_name = validateUID(condition_name)
         configuration = {
             "offset": offset
@@ -428,7 +428,7 @@ class EphemerisCondition(BaseCondition):
             return EphemerisCondition(dayset=dayset, offset=offset)
 
 class TimeOfDayCondition(BaseCondition):
-    def __init__(self, start_time, end_time, condition_name=None):
+    def __init__(self, start_time: str, end_time: str, condition_name: str = None):
         condition_name = validateUID(condition_name)
         configuration = {
             "startTime": start_time,
@@ -447,7 +447,7 @@ class TimeOfDayCondition(BaseCondition):
     regex = r"^Time\s+(?P<start_time>" + timeOfDayRegEx + r")(?:\s*-\s*|\s+to\s+)(?P<end_time>" + timeOfDayRegEx + r")$"
 
 class IntervalCondition(BaseCondition):
-    def __init__(self, min_interval, condition_name=None):
+    def __init__(self, min_interval: int, condition_name: str = None):
         condition_name = validateUID(condition_name)
         configuration = {
             "minInterval": min_interval,
