@@ -69,6 +69,12 @@ Use Python Scripting as script transformation by:
    "String has " + str(len(input)) + " characters"
    ```
 
+   or
+   
+   ```python
+   (lambda input: "String has " + str(len(input)) + " characters")(input)
+   ```
+
    or 
    
    ```python
@@ -96,7 +102,7 @@ By default, the scope, Registry and logger are automatically imported for `PY` T
 
 ```python
 from openhab import rule, Registry
-from openhab.triggers import GenericCronTrigger, ItemStateUpdateTrigger, ItemCommandTrigger, EphemerisCondition, when, onlyif
+from openhab.triggers import GenericCronTrigger, ItemStateChangeTrigger, ItemCommandTrigger, EphemerisCondition, when, onlyif
 
 import scope
 
@@ -121,7 +127,6 @@ class Test3:
 
 @rule(
     triggers = [
-        ItemStateUpdateTrigger("Item1"),
         ItemCommandTrigger("Item1", scope.ON)
     ],
     conditions = [
@@ -130,10 +135,25 @@ class Test3:
 )
 class Test4:
     def execute(self, module, input):
+        self.logger.info("Item1 received command ON during a holiday")
+
         if Registry.getItem("Item2").postUpdateIfDifferent(scope.OFF):
             self.logger.info("Item2 was updated")
-```
  
+@rule(
+    triggers = [
+        ItemStateChangeTrigger("Item1", state = scope.OFF, previous_state = state = scope.ON)
+    ],
+    conditions = [
+        ItemStateCondition("Item2", "=", scope.ON)
+#        ItemScriptCondition("Registry.getItem('Item2'=.getState() = scope.ON")
+    ]
+)
+class Test5:
+    def execute(self, module, input):
+        self.logger.info("Item1 was changed from ON to OFF and Item2 is ON")
+```
+
 ### Query thing status info
 
 ```python
