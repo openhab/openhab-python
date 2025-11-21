@@ -500,6 +500,7 @@ from openhab import Registry
 | getThings                | Registry.getThings()                                                                  | Array of [openHAB Things](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/thing)      |
 | getThing                 | Registry.getThing(uid)                                                                | [openHAB Thing](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/thing)                |
 | getChannel               | Registry.getChannel(uid)                                                              | [openHAB Channel](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/channel)            |
+| getItems                 | Registry.getItems()                                                                   | Array of [Item](#class-item)                                                                        |
 | getItemState             | Registry.getItemState(item_name, default = None)                                      | [openHAB State](https://www.openhab.org/javadoc/latest/org/openhab/core/types/state)                |
 | getItem                  | Registry.getItem(item_name)                                                           | [Item](#class-item)                                                                                 |
 | resolveItem              | Registry.resolveItem(item_or_item_name)                                               | [Item](#class-item)                                                                                 |

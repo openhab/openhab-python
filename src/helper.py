@@ -473,6 +473,10 @@ class Registry():
         return channel
 
     @staticmethod
+    def getItems() -> list[Item]:
+        return scope.itemRegistry.getItems()
+
+    @staticmethod
     @_Tracing.javacall
     def getItemState(item_name: str, default: Java_PrimitiveType = None) -> Java_PrimitiveType:
         if not isinstance(item_name, str):
