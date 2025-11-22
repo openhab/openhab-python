@@ -326,6 +326,7 @@ class Item(Java_Item if TYPE_CHECKING else object):
         link = Java_ItemChannelLink(self.getName(), uid, Configuration(link_config))
         links = ITEM_CHANNEL_LINK_REGISTRY.getLinks(uid)
 
+
         if links.size() > 0:
             if not links[0].getConfiguration().equals(link.getConfiguration()):
                 ITEM_CHANNEL_LINK_REGISTRY.update(link)
