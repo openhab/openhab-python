@@ -323,22 +323,31 @@ class Item(Java_Item if TYPE_CHECKING else object):
     @_Tracing.javacall
     def linkChannel(self, channel_uid: str, link_config: dict[str, str] = {}) -> Java_ItemChannelLink:
         uid = Java_ChannelUID(channel_uid)
-        link = Java_ItemChannelLink(self.getName(), uid, Configuration(link_config))
+        config = Configuration(link_config)
+
         links = ITEM_CHANNEL_LINK_REGISTRY.getLinks(uid)
-        if len(links) > 0:
-            if not links[0].getConfiguration().equals(link.getConfiguration()):
-                ITEM_CHANNEL_LINK_REGISTRY.update(link)
-        else:
-            ITEM_CHANNEL_LINK_REGISTRY.add(link)
+        if links.size() > 0:
+            for link in links:
+                if link.getItemName() == self.getName():
+                    if not link.getConfiguration().equals(config):
+                        ITEM_CHANNEL_LINK_REGISTRY.update(link)
+                    return link
+
+        link = Java_ItemChannelLink(self.getName(), uid, config)
+        ITEM_CHANNEL_LINK_REGISTRY.add(link)
         return link
 
     @_Tracing.javacall
     def unlinkChannel(self, channel_uid: str) -> Java_ItemChannelLink:
         uid = Java_ChannelUID(channel_uid)
+
         links = ITEM_CHANNEL_LINK_REGISTRY.getLinks(uid)
-        if len(links) > 0:
-            ITEM_CHANNEL_LINK_REGISTRY.remove(uid)
-            return links[0]
+        if links.size() > 0:
+            for link in links:
+                if link.getItemName() == self.getName():
+                    ITEM_CHANNEL_LINK_REGISTRY.remove(link.getUID())
+                    return link
+
         raise NotFoundException("Link {} not found".format(channel_uid))
 
     def getPersistence(self, service_id: str = None) -> 'ItemPersistence':
