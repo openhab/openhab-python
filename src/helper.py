@@ -322,8 +322,10 @@ class Item(Java_Item if TYPE_CHECKING else object):
 
     @_Tracing.javacall
     def linkChannel(self, channel_uid: str, link_config: dict[str, str] = {}) -> Java_ItemChannelLink:
-        link = Java_ItemChannelLink(self.getName(), Java_ChannelUID(channel_uid), Configuration(link_config))
-        links = ITEM_CHANNEL_LINK_REGISTRY.getLinks(channel_uid)
+        uid = Java_ChannelUID(channel_uid)
+        link = Java_ItemChannelLink(self.getName(), uid, Configuration(link_config))
+        links = ITEM_CHANNEL_LINK_REGISTRY.getLinks(uid)
+
         if links.size() > 0:
             if not links[0].getConfiguration().equals(link.getConfiguration()):
                 ITEM_CHANNEL_LINK_REGISTRY.update(link)
