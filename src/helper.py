@@ -326,12 +326,11 @@ class Item(Java_Item if TYPE_CHECKING else object):
         config = Configuration(link_config)
 
         links = ITEM_CHANNEL_LINK_REGISTRY.getLinks(uid)
-        if links.size() > 0:
-            for link in links:
-                if link.getItemName() == self.getName():
-                    if not link.getConfiguration().equals(config):
-                        ITEM_CHANNEL_LINK_REGISTRY.update(link)
-                    return link
+        for link in links:
+            if link.getItemName() == self.getName():
+                if not link.getConfiguration().equals(config):
+                    ITEM_CHANNEL_LINK_REGISTRY.update(link)
+                return link
 
         link = Java_ItemChannelLink(self.getName(), uid, config)
         ITEM_CHANNEL_LINK_REGISTRY.add(link)
@@ -342,11 +341,10 @@ class Item(Java_Item if TYPE_CHECKING else object):
         uid = Java_ChannelUID(channel_uid)
 
         links = ITEM_CHANNEL_LINK_REGISTRY.getLinks(uid)
-        if links.size() > 0:
-            for link in links:
-                if link.getItemName() == self.getName():
-                    ITEM_CHANNEL_LINK_REGISTRY.remove(link.getUID())
-                    return link
+        for link in links:
+            if link.getItemName() == self.getName():
+                ITEM_CHANNEL_LINK_REGISTRY.remove(link.getUID())
+                return link
 
         raise NotFoundException("Link {} not found".format(channel_uid))
 
