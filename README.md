@@ -146,7 +146,7 @@ class Test4:
     ],
     conditions = [
         ItemStateCondition("Item2", "=", scope.ON)
-#        ItemScriptCondition("Registry.getItem('Item2').getState() = scope.ON")
+#        ItemScriptCondition("Registry.getItem('Item2').getState() == scope.ON")
     ]
 )
 class Test5:
