@@ -258,14 +258,13 @@ class Instant(datetime):
         return datetime(year=year, month=month, day=day, hour=hour, minute=minute, second=second, microsecond=microsecond, tzinfo=tzinfo, fold=fold)
 
     def __getattribute__(self, name: str):
-        #print(name)
         match name:
-            case "_year": return super().getYear()
-            case "_month": return super().getMonthValue()
-            case "_day": return super().getDayOfMonth()
-            case "_hour": return super().getHour()
-            case "_minute": return super().getMinute()
-            case "_second": return super().getSecond()
+            case "_year": return datetime.fromtimestamp(super().getEpochSecond()).year
+            case "_month": return datetime.fromtimestamp(super().getEpochSecond()).month
+            case "_day": return datetime.fromtimestamp(super().getEpochSecond()).day
+            case "_hour": return datetime.fromtimestamp(super().getEpochSecond()).hour
+            case "_minute": return datetime.fromtimestamp(super().getEpochSecond()).minute
+            case "_second": return datetime.fromtimestamp(super().getEpochSecond()).second
             case "_microsecond": return int(super().getNano() / 1000)
             case "_tzinfo": return None
             case "_hashcode": return -1
@@ -279,6 +278,12 @@ class Instant(datetime):
 class DateTime(Instant):
     def __getattribute__(self, name: str):
         match name:
+            case "_year": return super().getYear()
+            case "_month": return super().getMonthValue()
+            case "_day": return super().getDayOfMonth()
+            case "_hour": return super().getHour()
+            case "_minute": return super().getMinute()
+            case "_second": return super().getSecond()
             case "_tzinfo": return timezone(timedelta(seconds=super().getOffset().getTotalSeconds()), super().getZone().getId())
         return super().__getattribute__(name)
 
