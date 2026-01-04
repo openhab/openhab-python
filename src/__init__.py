@@ -1,3 +1,3 @@
-__version__ = "1.0.15" # version string is for backward compatibility with openhab 5.0.0
+__version__ = "1.0.16" # version string is for backward compatibility with openhab 5.0.0
 
 from openhab.helper import rule, logger, Registry

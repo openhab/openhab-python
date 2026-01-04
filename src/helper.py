@@ -36,6 +36,7 @@ from java.util import UUID
 from scope import RuleSupport, osgi#, RuleSimple
 import scope
 
+
 METADATA_REGISTRY = getService("org.openhab.core.items.MetadataRegistry")
 ITEM_BUILDER_FACTORY = getService("org.openhab.core.items.ItemBuilderFactory")
 ITEM_CHANNEL_LINK_REGISTRY = getService("org.openhab.core.thing.link.ItemChannelLinkRegistry")
@@ -197,59 +198,9 @@ class rule():
         except Exception as e:
             rule_obj.logger.error("Rule execution failed: " + builtins.__formatTraceback__(e))
 
-class _Tracing():
-    @staticmethod
-    def processMissingAttribute(cls: str, name: str):
-        raise builtins.__wrapException__(AttributeError("Java instance of '{}' has no attribute '{}'".format(cls, name)), 2)
-
-    @staticmethod
-    def getAttributeWrapper(attr: any, *args: any):
-        try:
-            return attr(*args)
-        except TypeError as e:
-            if str(e) == "invalid instantiation of foreign object":
-                raise builtins.__wrapException__(AttributeError("One of your function parameters does not match the required value type."), 2)
-            raise e
-
-    @staticmethod
-    def foreignNoneFallback(self, name: str):
-        raise builtins.__wrapException__(AttributeError("None object has no attribute '{}'".format(name)), 1)
-
-    @staticmethod
-    def javacall(function: Callable):
-        def wrap(*args, **kwargs):
-            try:
-                return function(*args, **kwargs)
-            except Java_Exception as e:
-                raise builtins.__wrapException__(AttributeError(e),1)
-        return wrap
-
-ForeignNone.__getattr__ = _Tracing.foreignNoneFallback
-
-class _JavaCallProxy:
-    def __init__(self, proxy: Java_Object, callback: Callable):
-        self.proxy = proxy
-        self.callback = callback
-
-    def __getattr__(self, name: str):
-        try:
-            attr = getattr(self.proxy, name)
-            if callable(attr) and java.is_function(attr):
-                return lambda *args, **kwargs: _Tracing.getAttributeWrapper( attr, *(self.callback(*args)) )
-            return attr
-        except AttributeError as e:
-            _Tracing.processMissingAttribute(self.proxy, name)
-
-@interop_type(Java_Object)
-class Object:
-    def __getattribute__(self, name: str):
-        attr = super().__getattribute__(name)
-        if callable(attr) and java.is_function(attr):
-            return lambda *args, **kwargs: _Tracing.getAttributeWrapper( attr, *args )
-        return attr
-
-    def __getattr__(self, name: str):
-        _Tracing.processMissingAttribute(self.getClass(), name)
+def __foreignNoneFallback__(self, name: str):
+    raise AttributeError("None object has no attribute '{}'".format(name))
+ForeignNone.__getattr__ = __foreignNoneFallback__
 
 @interop_type(Java_Instant)
 class Instant(datetime):
@@ -289,7 +240,6 @@ class DateTime(Instant):
 
 @interop_type(Java_Item)
 class Item(Java_Item if TYPE_CHECKING else object):
-    @_Tracing.javacall
     def postUpdate(self, state: Union[Java_State, int, float, str]):
         scope.events.postUpdate(self, state)
 
@@ -299,7 +249,6 @@ class Item(Java_Item if TYPE_CHECKING else object):
         self.postUpdate(state)
         return True
 
-    @_Tracing.javacall
     def sendCommand(self, command: Union[Java_State, int, float, str]):
         scope.events.sendCommand(self, command)
 
@@ -309,23 +258,18 @@ class Item(Java_Item if TYPE_CHECKING else object):
         self.sendCommand(command)
         return True
 
-    @_Tracing.javacall
     def getThings(self) -> list[Java_Thing]:
         return ITEM_CHANNEL_LINK_REGISTRY.getBoundThings(self.getName())
 
-    @_Tracing.javacall
     def getChannels(self) -> list[Java_Channel]:
         return list(map(lambda uid: Registry.getChannel(uid.getAsString()), ITEM_CHANNEL_LINK_REGISTRY.getBoundChannels(self.getName())))
 
-    @_Tracing.javacall
     def getChannelUIDs(self) -> list[str]:
         return ITEM_CHANNEL_LINK_REGISTRY.getBoundChannels(self.getName())
 
-    @_Tracing.javacall
     def getChannelLinks(self) -> list[Java_ItemChannelLink]:
         return ITEM_CHANNEL_LINK_REGISTRY.getLinks(self.getName())
 
-    @_Tracing.javacall
     def linkChannel(self, channel_uid: str, link_config: dict[str, str] = {}) -> Java_ItemChannelLink:
         uid = Java_ChannelUID(channel_uid)
         config = Configuration(link_config)
@@ -341,7 +285,6 @@ class Item(Java_Item if TYPE_CHECKING else object):
         ITEM_CHANNEL_LINK_REGISTRY.add(link)
         return link
 
-    @_Tracing.javacall
     def unlinkChannel(self, channel_uid: str) -> Java_ItemChannelLink:
         uid = Java_ChannelUID(channel_uid)
 
@@ -396,6 +339,20 @@ class Item(Java_Item if TYPE_CHECKING else object):
             return current_state != new_state
         return True
 
+class _JavaCallProxy:
+    def __init__(self, proxy: Java_Object, callback: Callable):
+        self.proxy = proxy
+        self.callback = callback
+
+    def __getattr__(self, name: str):
+        attr = getattr(self.proxy, name)
+        if callable(attr) and java.is_function(attr):
+            return lambda *args, **kwargs: attr(*(self.callback(*args)))
+        return attr
+
+    def __str__(self):
+        return "{} => java proxy class {}".format(super().__str__(), str(self.proxy))
+
 class ItemSemantic(Java_Semantics if TYPE_CHECKING else _JavaCallProxy):
     def __init__(self, item: Item):
         super().__init__(Java_Semantics, lambda *args: tuple([item]) + args)
@@ -446,22 +403,18 @@ class ItemMetadata():
     def __init__(self, item):
         self.item = item
 
-    @_Tracing.javacall
     def get(self, namespace: str) -> Java_Metadata:
         return METADATA_REGISTRY.get(Java_MetadataKey(namespace, self.item.getName()))
 
-    @_Tracing.javacall
     def set(self, namespace: str, value, configuration=None) -> Java_Metadata:
         if self.get(namespace) == None:
             return METADATA_REGISTRY.add(Java_Metadata(Java_MetadataKey(namespace, self.item.getName()), value, configuration))
         else:
             return METADATA_REGISTRY.update(Java_Metadata(Java_MetadataKey(namespace, self.item.getName()), value, configuration))
 
-    @_Tracing.javacall
     def remove(self, namespace: str) -> Java_Metadata:
         return METADATA_REGISTRY.remove(Java_MetadataKey(namespace, self.item.getName()))
 
-    @_Tracing.javacall
     def removeAll(self):
         METADATA_REGISTRY.removeItemMetadata(self.item.getName())
 
@@ -471,19 +424,17 @@ class Registry():
         return scope.things.getAll()
 
     @staticmethod
-    @_Tracing.javacall
     def getThing(uid: str) -> Java_Thing:
         thing = scope.things.get(Java_ThingUID(uid))
         if thing is None:
-            raise builtins.__wrapException__(NotFoundException("Thing {} not found".format(uid)),2)
+            raise NotFoundException("Thing {} not found".format(uid))
         return thing
 
     @staticmethod
-    @_Tracing.javacall
     def getChannel(uid: str) -> Java_Channel:
         channel = scope.things.getChannel(Java_ChannelUID(uid))
         if channel is None:
-            raise builtins.__wrapException__(NotFoundException("Channel {} not found".format(uid)),2)
+            raise NotFoundException("Channel {} not found".format(uid))
         return channel
 
     @staticmethod
@@ -491,26 +442,24 @@ class Registry():
         return scope.itemRegistry.getItems()
 
     @staticmethod
-    @_Tracing.javacall
     def getItemState(item_name: str, default: Java_PrimitiveType = None) -> Java_PrimitiveType:
         if not isinstance(item_name, str):
-            raise builtins.__wrapException__(Exception("Unsupported parameter type {}".format(type(item_name))),2)
+            raise Exception("Unsupported parameter type {}".format(type(item_name)))
         state = scope.items.get(item_name)
         if state is None:
-            raise builtins.__wrapException__(NotFoundException("Item state for {} not found".format(item_name)),2)
+            raise NotFoundException("Item state for {} not found".format(item_name))
         if default is not None and java.instanceof(state, Java_UnDefType):
             state = default
         return state
 
     @staticmethod
-    @_Tracing.javacall
     def getItem(item_name: str) -> Item:
         if not isinstance(item_name, str):
-            raise builtins.__wrapException__(Exception("Unsupported parameter type {}".format(type(item_name))),2)
+            raise Exception("Unsupported parameter type {}".format(type(item_name)))
         try:
             return scope.itemRegistry.getItem(item_name)
         except Java_ItemNotFoundException:
-            raise builtins.__wrapException__(NotFoundException("Item {} not found".format(item_name)),2)
+            raise NotFoundException("Item {} not found".format(item_name))
 
     @staticmethod
     def resolveItem(item_or_item_name: Union[Item, str]) -> Item:
@@ -519,19 +468,17 @@ class Registry():
         return Registry.getItem(item_or_item_name)
 
     @staticmethod
-    @_Tracing.javacall
     def removeItem(item_name: str, recursive: bool = False) -> Item:
         if not isinstance(item_name, str):
-            raise builtins.__wrapException__(Exception("Unsupported parameter type {}".format(type(item_name))),2)
+            raise Exception("Unsupported parameter type {}".format(type(item_name)))
         try:
             item = scope.itemRegistry.getItem(item_name)
             scope.itemRegistry.remove(item_name, recursive)
             return item
         except Java_ItemNotFoundException:
-            raise builtins.__wrapException__(NotFoundException("Item {} not found".format(item_name)),2)
+            raise NotFoundException("Item {} not found".format(item_name))
 
     @staticmethod
-    @_Tracing.javacall
     def addItem(item_name: str, item_type: str, item_config: dict[str, str] = {}) -> Item:
         item = Registry._createItem(item_name, item_type, item_config)
         scope.itemRegistry.add(item)
