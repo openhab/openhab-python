@@ -594,7 +594,7 @@ threading.Thread(target=threadTest).start()
 
 ### Performance
 
-Accessing Java objects from within Python is achieved using foreign objects. This boundary switch always incurs additional performance costs. Normally, this is negligible. However, in extreme scenarios like loops where the object is accessed tens of thousands of times, it can make a difference. In such cases, it's recommended to reference object methods as local variables and then use these for the final method call. The following example illustrates the difference.
+Accessing Java objects from within Python is achieved using [foreign objects](https://www.graalvm.org/python/docs/#interacting-with-foreign-objects-from-python-scripts). This boundary switch always incurs additional performance costs. Normally, this is negligible. However, in extreme scenarios like loops where the object is accessed tens of thousands of times, it can make a difference. In such cases, it's recommended to reference object methods as local variables and then use these for the final method call. The following example illustrates the difference.
 
 Unoptimized variant with a runtime of 550ms
 
