@@ -592,6 +592,30 @@ def threadTest():
 threading.Thread(target=threadTest).start()
 ```
 
+### Performance
+
+Accessing Java objects from within Python is achieved using foreign objects. This boundary switch always incurs additional performance costs. Normally, this is negligible. However, in extreme scenarios like loops where the object is accessed tens of thousands of times, it can make a difference. In such cases, it's recommended to reference object methods as local variables and then use these for the final method call. The following example illustrates the difference.
+
+Unoptimized variant with a runtime of 550ms
+
+```python
+cache.privateCache.put('counter', 0)
+for i in range(100000):
+    counter = cache.privateCache.get('counter')
+    cache.privateCache.put('counter', counter + 1)
+```
+
+Optimized variant with a runtime of von 189ms
+
+```python
+put = cache.privateCache.put
+get = cache.privateCache.get
+put('counter', 0)
+for i in range(100000):
+    counter = get('counter')
+    put('counter', counter + 1)
+```
+
 ### Lifecycle hook
 
 A lifecycle hook can be used to cleanup or shutdown something, before a script is unloaded or reloaded
