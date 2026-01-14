@@ -46,19 +46,45 @@ def versiontuple(v):
 BUNDLE_VERSION = versiontuple(".".join(osgi.bundleContext.getBundle().getVersion().toString().split(".")[:3]))
 
 # **** LOGGING ****
-Java_LogFactory = java.type("org.slf4j.LoggerFactory")
-LOG_PREFIX = "org.openhab.automation.pythonscripting"
-FILENAME = NAME_PREFIX = None
-if 'javax.script.filename' in TopCallStackFrame:
-    FILENAME = TopCallStackFrame['javax.script.filename']
-    file_package = os.path.basename(FILENAME)[:-3]
-    LOG_PREFIX = "{}.{}".format(LOG_PREFIX, file_package)
-    NAME_PREFIX = "{}".format(file_package)
-elif 'ruleUID' in TopCallStackFrame:
-    FILENAME = None
-    LOG_PREFIX = "{}.{}".format(LOG_PREFIX, TopCallStackFrame['ruleUID'])
-    NAME_PREFIX = "{}".format(TopCallStackFrame['ruleUID'])
-logger = Java_LogFactory.getLogger( LOG_PREFIX )
+class CustomLogger:
+    Java_LogFactory = java.type("org.slf4j.LoggerFactory")
+
+    def __init__(self):
+        self.initialized = False
+        self.log_prefix = "org.openhab.automation.pythonscripting"
+
+    def __getattr__(self, name: str):
+        if not self.initialized:
+            if 'javax.script.filename' in TopCallStackFrame:
+                self.filename = TopCallStackFrame['javax.script.filename']
+                file_package = os.path.basename(self.filename)[:-3]
+                self.log_prefix = "{}.{}".format(self.log_prefix, file_package)
+                self.name_prefix = "{}".format(file_package)
+            elif 'ruleUID' in TopCallStackFrame:
+                self.filename = None
+                self.log_prefix = "{}.{}".format(self.log_prefix, TopCallStackFrame['ruleUID'])
+                self.name_prefix = "{}".format(TopCallStackFrame['ruleUID'])
+
+            self.logger = CustomLogger.Java_LogFactory.getLogger( self.log_prefix )
+            self.initialized = True
+
+            if name in ['logger', 'filename', 'log_prefix', 'name_prefix']:
+                return self.__getattribute__(name)
+
+        return self.logger.__getattribute__(name)
+
+    def __str__(self):
+        return "{} => java proxy class {}".format(super().__str__(), str(self.logger))
+
+    def _getFilename(self):
+        return self.filename
+
+    def _getNamePrefix(self):
+        return self.name_prefix
+
+    def _buildRuleLogger(self, name):
+        return CustomLogger.Java_LogFactory.getLogger( "{}.{}".format(self.log_prefix, name) )
+logger = CustomLogger()
 # *****************************************************************
 
 __all__ = ["rule", "logger", "Registry"]
@@ -90,7 +116,7 @@ class rule():
         rule_isfunction = isfunction(clazz_or_function)
         rule_obj = clazz_or_function if rule_isfunction else clazz_or_function()
 
-        clazz_or_function.logger = Java_LogFactory.getLogger( "{}.{}".format(LOG_PREFIX, clazz_or_function.__name__) )
+        clazz_or_function.logger = logger._buildRuleLogger( clazz_or_function.__name__)
 
         triggers = []
         if proxy.triggers is not None:
@@ -119,9 +145,9 @@ class rule():
         #register_interop_type(Java_SimpleRule, clazz)
         #subclass = type(clazz.__name__, (clazz, BaseSimpleRule,))
 
-        name = "{}.{}".format(NAME_PREFIX, clazz_or_function.__name__) if proxy.name is None else proxy.name
-        if FILENAME:
-            hash=hashlib.md5(FILENAME.encode('utf-8')).hexdigest()
+        name = "{}.{}".format(logger._getNamePrefix(), clazz_or_function.__name__) if proxy.name is None else proxy.name
+        if logger._getFilename():
+            hash=hashlib.md5(logger._getFilename().encode('utf-8')).hexdigest()
             uid = "{} {}".format(name, hash) if proxy.uid is None else proxy.uid
             uid = re.sub(r"\W", "-", uid)
         else:
@@ -157,12 +183,12 @@ class rule():
             if BUNDLE_VERSION < versiontuple("5.0.0"):
                 actionConfiguration = rule.getActions().get(0).getConfiguration()
                 actionConfiguration.put('type', 'application/x-python3')
-                if FILENAME:
-                    actionConfiguration.put('script', f"# text based rule in file: {FILENAME}")
+                if logger._getFilename():
+                    actionConfiguration.put('script', f"# text based rule in file: {logger._getFilename()}")
             else:
                 rule.getConfiguration().put('sourceType', 'application/x-python3')
-                if FILENAME:
-                    rule.getConfiguration().put('source', f"# text based rule in file: {FILENAME}")
+                if logger._getFilename():
+                    rule.getConfiguration().put('source', f"# text based rule in file: {logger._getFilename()}")
 
             clazz_or_function.logger.info("Rule '{}' initialised".format(name))
 
