@@ -55,26 +55,26 @@ class CustomLogger:
 
     def __getattr__(self, name: str):
         if not self.initialized:
-            if 'javax.script.filename' in TopCallStackFrame:
-                self.filename = TopCallStackFrame['javax.script.filename']
-                file_package = os.path.basename(self.filename)[:-3]
-                self.log_prefix = "{}.{}".format(self.log_prefix, file_package)
-                self.name_prefix = "{}".format(file_package)
-            elif 'ruleUID' in TopCallStackFrame:
-                self.filename = None
-                self.log_prefix = "{}.{}".format(self.log_prefix, TopCallStackFrame['ruleUID'])
-                self.name_prefix = "{}".format(TopCallStackFrame['ruleUID'])
-
-            self.logger = CustomLogger.Java_LogFactory.getLogger( self.log_prefix )
-            self.initialized = True
-
+            self._detect()
             if name in ['logger', 'filename', 'log_prefix', 'name_prefix']:
                 return self.__getattribute__(name)
-
         return self.logger.__getattribute__(name)
 
     def __str__(self):
         return "{} => java proxy class {}".format(super().__str__(), str(self.logger))
+
+    def _detect(self):
+        if 'javax.script.filename' in TopCallStackFrame:
+            self.filename = TopCallStackFrame['javax.script.filename']
+            file_package = os.path.basename(self.filename)[:-3]
+            self.log_prefix = "{}.{}".format(self.log_prefix, file_package)
+            self.name_prefix = "{}".format(file_package)
+        elif 'ruleUID' in TopCallStackFrame:
+            self.filename = None
+            self.log_prefix = "{}.{}".format(self.log_prefix, TopCallStackFrame['ruleUID'])
+            self.name_prefix = "{}".format(TopCallStackFrame['ruleUID'])
+        self.logger = CustomLogger.Java_LogFactory.getLogger( self.log_prefix )
+        self.initialized = True
 
     def _getFilename(self):
         return self.filename
@@ -83,6 +83,8 @@ class CustomLogger:
         return self.name_prefix
 
     def _buildRuleLogger(self, name):
+        if not self.initialized:
+            self._detect()
         return CustomLogger.Java_LogFactory.getLogger( "{}.{}".format(self.log_prefix, name) )
 logger = CustomLogger()
 # *****************************************************************
@@ -116,7 +118,7 @@ class rule():
         rule_isfunction = isfunction(clazz_or_function)
         rule_obj = clazz_or_function if rule_isfunction else clazz_or_function()
 
-        clazz_or_function.logger = logger._buildRuleLogger( clazz_or_function.__name__)
+        clazz_or_function.logger = logger._buildRuleLogger(clazz_or_function.__name__)
 
         triggers = []
         if proxy.triggers is not None:
