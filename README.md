@@ -637,8 +637,16 @@ Java objects of function results, are transparently converted to their python eq
 
 | Java class<br/>(function result) | Python class    |
 | ----------------| --------------- |
-| ZonedDateTime   | datetime        |
+| ZonedDateTime   | datetime (with timezone) |
 | Instant         | datetime        |
+
+It should be noted that all converted ZonedDateTime contains a timezone. This means that for further processing, you have to deal with it.
+
+```python
+datetimevalue = Registry.getItemState("myDatetimeItem").getZonedDateTime()
+if datetimevalue < datetime.now().astimezone():
+    print("is older")
+```
 
 **Python to Java** (In addition to standard [Python to Java Interop Types](https://www.graalvm.org/python/docs/#python-to-interop-types))
 
