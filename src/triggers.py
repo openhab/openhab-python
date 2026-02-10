@@ -145,7 +145,8 @@ class ChannelEventTrigger(BaseTrigger):
 
     first_word = ["channel"]
     # @when("Channel hue:device:default:lamp1:color triggered START")
-    regex = r"^Channel\s+\"*(?P<channel_uid>\D\S*)\"*\s+triggered(?:\s+(?P<event>\w+))*$"
+    # @when("Channel hue:device:default:button1:dimmer_switch_event triggered 1002.0")
+    regex = r"^Channel\s+\"*(?P<channel_uid>\D\S*)\"*\s+triggered(?:\s+(?P<event>[.\w]+))*$"
 
 class SystemStartlevelTrigger(BaseTrigger):
     def __init__(self, startlevel: int, trigger_name: str = None):
