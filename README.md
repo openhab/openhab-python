@@ -640,7 +640,7 @@ Java objects of function results, are transparently converted to their python eq
 | ZonedDateTime   | datetime (with timezone) |
 | Instant         | datetime        |
 
-[!IMPORTANT]
+[!TIP]
 All converted ZonedDateTime contains a timezone. This means that for further processing, you have to deal with it.
 
 ```python
