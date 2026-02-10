@@ -640,7 +640,8 @@ Java objects of function results, are transparently converted to their python eq
 | ZonedDateTime   | datetime (with timezone) |
 | Instant         | datetime        |
 
-It should be noted that all converted ZonedDateTime contains a timezone. This means that for further processing, you have to deal with it.
+[!IMPORTANT]
+All converted ZonedDateTime contains a timezone. This means that for further processing, you have to deal with it.
 
 ```python
 datetimevalue = Registry.getItemState("myDatetimeItem").getZonedDateTime()
