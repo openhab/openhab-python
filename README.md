@@ -373,7 +373,7 @@ from openhab.triggers import onlyif
 
 The module `scope` encapsulates all [default jsr223 objects/presets](https://www.openhab.org/docs/configuration/jsr223.html#default-preset-importpreset-not-required) into a new object. 
 
-That means, [all constants](https://www.openhab.org/docs/configuration/jsr223.html#default-preset-importpreset-not-required) which where available normaly in a global context are moved to the scope object, to organize things a bit and eliminate the variable chaos in the top-level context.
+That means, [all constants](https://www.openhab.org/docs/configuration/jsr223.html#default-preset-importpreset-not-required) which were available normally in a global context are moved to the scope object, to organize things a bit and eliminate the variable chaos in the top-level context.
 
 You can use it like below
 
