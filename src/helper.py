@@ -268,22 +268,22 @@ class DateTime(Instant):
 
 @interop_type(Java_Item)
 class Item(Java_Item if TYPE_CHECKING else object):
-    def postUpdate(self, state: Union[Java_State, int, float, str]):
-        scope.events.postUpdate(self, state)
+    def postUpdate(self, state: Union[Java_State, int, float, str], source: str = None):
+        scope.events.postUpdate(self, state, source)
 
-    def postUpdateIfDifferent(self, state: Union[Java_State, int, float, str]) -> bool:
+    def postUpdateIfDifferent(self, state: Union[Java_State, int, float, str], source: str = None) -> bool:
         if not Item._checkIfDifferent(self.getState(), state):
             return False
-        self.postUpdate(state)
+        self.postUpdate(state, source)
         return True
 
-    def sendCommand(self, command: Union[Java_State, int, float, str]):
-        scope.events.sendCommand(self, command)
+    def sendCommand(self, command: Union[Java_State, int, float, str], source: str = None):
+        scope.events.sendCommand(self, command, source)
 
-    def sendCommandIfDifferent(self, command: Union[Java_State, int, float, str]) -> bool:
+    def sendCommandIfDifferent(self, command: Union[Java_State, int, float, str], source: str = None) -> bool:
         if not Item._checkIfDifferent(self.getState(), command):
             return False
-        self.sendCommand(command)
+        self.sendCommand(command, source)
         return True
 
     def getThings(self) -> list[Java_Thing]:

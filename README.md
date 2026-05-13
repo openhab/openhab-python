@@ -517,10 +517,10 @@ There is no need to import this class directly. It is returned as a result of fu
 
 | Function                 | Usage                                                                                 | Return Value                                                                                        |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| postUpdate               | \<instance\>.postUpdate(state)                                                        |                                                                                                     |
-| postUpdateIfDifferent    | \<instance\>.postUpdateIfDifferent(state)                                             |                                                                                                     |
-| sendCommand              | \<instance\>.sendCommand(command)                                                     |                                                                                                     |
-| sendCommandIfDifferent   | \<instance\>.sendCommandIfDifferent(command)                                          |                                                                                                     |
+| postUpdate               | \<instance\>.postUpdate(state, source = None)                                         |                                                                                                     |
+| postUpdateIfDifferent    | \<instance\>.postUpdateIfDifferent(state, source = None)                              |                                                                                                     |
+| sendCommand              | \<instance\>.sendCommand(command, source = None)                                      |                                                                                                     |
+| sendCommandIfDifferent   | \<instance\>.sendCommandIfDifferent(command, source = None)                           |                                                                                                     |
 | getPersistence           | \<instance\>.getPersistence(service_id = None)                                        | [ItemPersistence](#class-itempersistence)                                                           |
 | getSemantic              | \<instance\>.getSemantic()                                                            | [ItemSemantic](#class-itemsemantic)                                                                 |
 | getMetadata              | \<instance\>.getMetadata()                                                            | [ItemMetadata](#class-itemmetadata)                                                                 |
