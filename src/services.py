@@ -1,9 +1,13 @@
-from typing import TypeVar
+from typing import Literal, TypeVar, overload
 
+from org.openhab.core.automation import RuleManager
 from scope import osgi
 
 
 BUNDLE_CONTEXT = osgi.bundleContext
+
+@overload
+def getService(class_or_name: Literal['org.openhab.core.automation.RuleManager']) -> RuleManager: ...
 
 Java_ServiceReference = TypeVar("org.osgi.framework.ServiceReference")
 def getService(class_or_name) -> Java_ServiceReference:
