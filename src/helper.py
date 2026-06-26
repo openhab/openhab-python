@@ -173,26 +173,24 @@ class rule():
             base_rule_obj.setTags(proxy.tags)
 
         if len(raw_triggers) == 0:
-            clazz_or_function.logger.warn("Rule '{}' has no triggers".format(name))
-        else:
             base_rule_obj.setTriggers(raw_triggers)
 
-            if len(raw_conditions) > 0:
-                base_rule_obj.setConditions(raw_conditions)
+        if len(raw_conditions) > 0:
+            base_rule_obj.setConditions(raw_conditions)
 
-            rule = RuleSupport.automationManager.addRule(base_rule_obj)
+        rule = RuleSupport.automationManager.addRule(base_rule_obj)
 
-            if BUNDLE_VERSION < versiontuple("5.0.0"):
-                actionConfiguration = rule.getActions().get(0).getConfiguration()
-                actionConfiguration.put('type', 'application/x-python3')
-                if logger._getFilename():
-                    actionConfiguration.put('script', f"# text based rule in file: {logger._getFilename()}")
-            else:
-                rule.getConfiguration().put('sourceType', 'application/x-python3')
-                if logger._getFilename():
-                    rule.getConfiguration().put('source', f"# text based rule in file: {logger._getFilename()}")
+        if BUNDLE_VERSION < versiontuple("5.0.0"):
+            actionConfiguration = rule.getActions().get(0).getConfiguration()
+            actionConfiguration.put('type', 'application/x-python3')
+            if logger._getFilename():
+                actionConfiguration.put('script', f"# text based rule in file: {logger._getFilename()}")
+        else:
+            rule.getConfiguration().put('sourceType', 'application/x-python3')
+            if logger._getFilename():
+                rule.getConfiguration().put('source', f"# text based rule in file: {logger._getFilename()}")
 
-            clazz_or_function.logger.info("Rule '{}' initialised".format(name))
+        clazz_or_function.logger.info("Rule '{}' initialised".format(name))
 
         return rule_obj
 
