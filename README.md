@@ -265,19 +265,23 @@ mailAction.sendMail("mail@example.com", "Test subject", "This is the mail conten
 You use the RuleManager to trigger a custom rule via code.
 
 ```python
+from openhab import rule
 from openhab.services import getService
+
+@rule(uid="Test3",)
+class Test3:
+    def execute(self, module, input):
+        self.logger.info("Test3 was triggered")
 
 ruleManager = getService('org.openhab.core.automation.RuleManager')
 
-status = ruleManager.getStatus("<myruleid>")
-
-if not status:
-     print("your rule does not exists")
-
+status = ruleManager.getStatus("Test3")
+#if not status:
+#   print("your rule does not exists")
 if status == "UNINITIALIZED":
      print("your rule is not initialized")
 
-ruleManager.runNow("<myruleid>", True, {});
+ruleManager.runNow("Test3", True, {});
 ```
 
 
