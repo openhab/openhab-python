@@ -172,7 +172,7 @@ class rule():
         if proxy.tags is not None:
             base_rule_obj.setTags(proxy.tags)
 
-        if len(raw_triggers) == 0:
+        if len(raw_triggers) > 0:
             base_rule_obj.setTriggers(raw_triggers)
 
         if len(raw_conditions) > 0:
