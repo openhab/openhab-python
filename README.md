@@ -260,19 +260,23 @@ mailAction = actions.get("mail","mail:smtp:samplesmtp")
 mailAction.sendMail("mail@example.com", "Test subject", "This is the mail content.")
 ```
 
-### RuleManager Service
+### Services
 
-You use the RuleManager to trigger a custom rule via code.
+To use a services, like the RuleManager, check the example below. It triggers a custom rule.
 
 ```python
 from openhab import rule
 from openhab.services import getService
+
+#from org.openhab.core.automation import RuleManager # => Alternate variant with autocompletion support
 
 @rule(uid="Test3",)
 class Test3:
     def execute(self, module, input):
         self.logger.info("Test3 was triggered")
 
+
+#ruleManager = getService(RuleManager) # => Alternate variant with autocompletion support
 ruleManager = getService('org.openhab.core.automation.RuleManager')
 
 status = ruleManager.getStatus("Test3")
@@ -284,6 +288,8 @@ if status == "UNINITIALIZED":
 ruleManager.runNow("Test3", True, {});
 ```
 
+>[!IMPORTANT]
+>If you want [autocompletion](https://www.openhab.org/addons/automation/pythonscripting/#enable-python-autocompletion), you have to use classes as arguments.
 
 ## Decorators
 

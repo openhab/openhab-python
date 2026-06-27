@@ -1,16 +1,25 @@
-from typing import Literal, TypeVar, overload
+from typing import TYPE_CHECKING
 
-from org.openhab.core.automation import RuleManager
 from scope import osgi
-
 
 BUNDLE_CONTEXT = osgi.bundleContext
 
-@overload
-def getService(class_or_name: Literal['org.openhab.core.automation.RuleManager']) -> RuleManager: ...
+if TYPE_CHECKING:
+    from org.osgi.framework import ServiceReference
+    from typing import overload, TypeVar
 
-Java_ServiceReference = TypeVar("org.osgi.framework.ServiceReference")
-def getService(class_or_name) -> Java_ServiceReference:
+    T = TypeVar('T')
+
+    @overload
+    def getService(class_or_name: type[T] ) -> T: ...
+
+    @overload
+    def getService(class_or_name ) -> ServiceReference: ...
+
+    @overload
+    def findService(class_name, service_filter) -> list[ServiceReference]: ...
+
+def getService(class_or_name):
     if BUNDLE_CONTEXT:
         classname = class_or_name.getName() if isinstance(class_or_name, type) else class_or_name
         ref = BUNDLE_CONTEXT.getServiceReference(classname)
@@ -18,7 +27,7 @@ def getService(class_or_name) -> Java_ServiceReference:
     else:
         return None
 
-def findService(class_name, service_filter) -> list[Java_ServiceReference]:
+def findService(class_name, service_filter):
     if BUNDLE_CONTEXT:
         references = BUNDLE_CONTEXT.getServiceReferences(class_name, service_filter)
         if references:

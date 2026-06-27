@@ -1,7 +1,7 @@
 import builtins
 from typing import TYPE_CHECKING, Callable, Union
 
-from polyglot import ForeignNone, ForeignObject, interop_type
+from polyglot import ForeignNone, interop_type
 
 import java
 import hashlib
@@ -33,13 +33,17 @@ from java.time import ZonedDateTime as Java_ZonedDateTime, Instant as Java_Insta
 from java.lang import Object as Java_Object, Iterable as Java_Iterable, Exception as Java_Exception
 from java.util import UUID
 
-from scope import RuleSupport, osgi#, RuleSimple
+from org.openhab.core.items import MetadataRegistry
+from org.openhab.core.items import ItemBuilderFactory
+from org.openhab.core.thing.link import ItemChannelLinkRegistry
+
+from scope import RuleSupport, osgi
 import scope
 
 
-METADATA_REGISTRY = getService("org.openhab.core.items.MetadataRegistry")
-ITEM_BUILDER_FACTORY = getService("org.openhab.core.items.ItemBuilderFactory")
-ITEM_CHANNEL_LINK_REGISTRY = getService("org.openhab.core.thing.link.ItemChannelLinkRegistry")
+METADATA_REGISTRY = getService(MetadataRegistry)
+ITEM_BUILDER_FACTORY = getService(ItemBuilderFactory)
+ITEM_CHANNEL_LINK_REGISTRY = getService(ItemChannelLinkRegistry)
 
 def versiontuple(v):
     return tuple(map(lambda part: int(part) if part.isdigit() else 0, (v.split("."))))
