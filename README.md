@@ -262,7 +262,9 @@ mailAction.sendMail("mail@example.com", "Test subject", "This is the mail conten
 
 ### Services
 
-To use a services, like the RuleManager, check the example below. It triggers a custom rule.
+[Core Services](#module-openhabservices) of openHAB can be used via the services module
+
+To use a services, like the RuleManager, just call `getService` wqith the service class or name as an argument.
 
 ```python
 from openhab import rule
@@ -287,9 +289,6 @@ if status == "UNINITIALIZED":
 
 ruleManager.runNow("Test3", True, {});
 ```
-
->[!IMPORTANT]
->If you want [autocompletion](https://www.openhab.org/addons/automation/pythonscripting/#enable-python-autocompletion), you have to use classes as arguments.
 
 ## Decorators
 
@@ -519,6 +518,16 @@ The `actions` module encapsulates [core actions](https://www.openhab.org/javadoc
 | EphemerisCondition       | EphemerisCondition(dayset, offset=0, condition_name=None)                             |                                                                                                     |
 | TimeOfDayCondition       | TimeOfDayCondition(start_time, end_time, condition_name=None)                         |                                                                                                     |
 | IntervalCondition        | IntervalCondition(min_interval, condition_name=None)                                  |                                                                                                     |
+
+### module openhab.services
+
+| Function                 | Usage                                                                                 | Description                                                                                         |
+| ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| getService               | getService(class_or_name)                                                             | get a service instance by class or name                                                             |
+| findService              | findService(class_name, service_filter)                                               |                                                                                                     |
+
+>[!IMPORTANT]
+>If you want [autocompletion](https://www.openhab.org/addons/automation/pythonscripting/#enable-python-autocompletion), you have to use classes (not classnames) as arguments.
 
 ## Classes
 
