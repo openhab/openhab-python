@@ -529,6 +529,14 @@ The `actions` module encapsulates [core actions](https://www.openhab.org/javadoc
 >[!IMPORTANT]
 >If you want [autocompletion](https://www.openhab.org/addons/automation/pythonscripting/#enable-python-autocompletion), you have to use classes (not classnames) as arguments.
 
+below is a incomplete short list of useful services.
+
+* [org.openhab.core.automation.RuleManager](https://www.openhab.org/javadoc/latest/org/openhab/core/automation/rulemanager)
+* [org.openhab.core.items.MetadataRegistry](https://www.openhab.org/javadoc/latest/org/openhab/core/items/metadataregistry)
+* [org.openhab.core.items.ItemBuilderFactory](https://www.openhab.org/javadoc/latest/org/openhab/core/items/itembuilderfactory)
+* [org.openhab.core.items.ItemRegistry](https://www.openhab.org/javadoc/latest/org/openhab/core/items/itemregistry)
+* [org.openhab.core.thing.link.ItemChannelLinkRegistry](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/link/itemchannellinkregistry)
+
 ## Classes
 
 ### class Registry 
