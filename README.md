@@ -661,7 +661,7 @@ for i in range(100000):
     cache.privateCache.put('counter', counter + 1)
 ```
 
-Optimized variant with a runtime of von 189ms
+Optimized variant with a runtime of 189ms
 
 ```python
 put = cache.privateCache.put
