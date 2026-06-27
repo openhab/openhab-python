@@ -228,7 +228,7 @@ class PWMTrigger(BaseTrigger):
             "interval": interval,
             "minDutycycle": min_duty_cycle,
             "maxDutycycle": max_duty_cycle,
-            "deadManSwitch": deadManSwitch
+            "deadManSwitch": dead_man_switch
         }
         self.raw_trigger = Java_TriggerBuilder.create().withId(trigger_name).withTypeUID("pwm.PWMTrigger").withConfiguration(Java_Configuration(configuration)).build()
 
@@ -487,7 +487,7 @@ class onlyif():
         TimeOfDayCondition
     ]
 
-    def __init__(self, term_as_string):
+    def __init__(self, term_as_string: str):
         self.target = term_as_string
 
     def __call__(self, clazz):
@@ -498,7 +498,7 @@ class onlyif():
         return clazz
 
     @staticmethod
-    def parse(target):
+    def parse(target: str):
         _target = target.strip()
         first_word = _target.split()[0]
 
