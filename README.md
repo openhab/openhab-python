@@ -489,6 +489,8 @@ The `actions` module encapsulates [core actions](https://www.openhab.org/javadoc
 | Voice                    | see [openHAB Voice API](https://www.openhab.org/javadoc/latest/org/openhab/core/model/script/actions/voice)      |                                                                          |
 | NotificationAction       |                                                                                       | e.g. NotificationAction.sendNotification("test@test.org", "Window is open")                         |
 
+The "Example" section shows you [how to use actions](#actions).
+
 ### module openhab.triggers
 
 | Class                    | Usage                                                                                 | Description                                                                                         |
@@ -519,6 +521,8 @@ The `actions` module encapsulates [core actions](https://www.openhab.org/javadoc
 | TimeOfDayCondition       | TimeOfDayCondition(start_time, end_time, condition_name=None)                         |                                                                                                     |
 | IntervalCondition        | IntervalCondition(min_interval, condition_name=None)                                  |                                                                                                     |
 
+The "Example" section shows you [how to use triggers](#simple-rule).
+
 ### module openhab.services
 
 | Function                 | Usage                                                                                 | Description                                                                                         |
@@ -536,6 +540,8 @@ below is a incomplete short list of useful services.
 * [org.openhab.core.items.ItemBuilderFactory](https://www.openhab.org/javadoc/latest/org/openhab/core/items/itembuilderfactory)
 * [org.openhab.core.items.ItemRegistry](https://www.openhab.org/javadoc/latest/org/openhab/core/items/itemregistry)
 * [org.openhab.core.thing.link.ItemChannelLinkRegistry](https://www.openhab.org/javadoc/latest/org/openhab/core/thing/link/itemchannellinkregistry)
+
+The "Example" section shows you [how to use services](#services).
 
 ## Classes
 
