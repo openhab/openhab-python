@@ -17,7 +17,10 @@ if TYPE_CHECKING:
     def getService(class_or_name ) -> ServiceReference: ...
 
     @overload
-    def findService(class_name, service_filter) -> list[ServiceReference]: ...
+    def findService(class_or_name: type[T], service_filter) -> list[T]: ...
+
+    @overload
+    def findService(class_or_name, service_filter) -> list[ServiceReference]: ...
 
 def getService(class_or_name):
     if BUNDLE_CONTEXT:
@@ -27,9 +30,10 @@ def getService(class_or_name):
     else:
         return None
 
-def findService(class_name, service_filter):
+def findService(class_or_name, service_filter):
     if BUNDLE_CONTEXT:
-        references = BUNDLE_CONTEXT.getServiceReferences(class_name, service_filter)
+        classname = class_or_name.getName() if isinstance(class_or_name, type) else class_or_name
+        references = BUNDLE_CONTEXT.getServiceReferences(classname, service_filter)
         if references:
             return [BUNDLE_CONTEXT.getService(reference) for reference in references]
         else:
