@@ -264,7 +264,7 @@ mailAction.sendMail("mail@example.com", "Test subject", "This is the mail conten
 
 [Core Services](#module-openhabservices) of openHAB can be used via the services module
 
-To use a services, like the RuleManager, just call `getService` wqith the service class or name as an argument.
+To use a services, like the RuleManager, just call `getService` with the service class or name as an argument.
 
 ```python
 from openhab import rule
