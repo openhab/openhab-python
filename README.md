@@ -527,7 +527,7 @@ The "Example" section shows you [how to use triggers](#simple-rule).
 | Function                 | Usage                                                                                 | Description                                                                                         |
 | ------------------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
 | getService               | getService(class_or_name)                                                             | get a service instance by class or name                                                             |
-| findService              | findService(class_name, service_filter)                                               |                                                                                                     |
+| findService              | findService(class_or_name, service_filter)                                            |                                                                                                     |
 
 >[!IMPORTANT]
 >If you want [autocompletion](https://www.openhab.org/addons/automation/pythonscripting/#enable-python-autocompletion), you have to use classes (not classnames) as arguments.
