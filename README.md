@@ -277,7 +277,6 @@ class Test3:
     def execute(self, module, input):
         self.logger.info("Test3 was triggered")
 
-
 #ruleManager = getService(RuleManager) # => Alternate variant with autocompletion support
 ruleManager = getService('org.openhab.core.automation.RuleManager')
 
