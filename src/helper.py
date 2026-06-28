@@ -8,8 +8,6 @@ import hashlib
 import re
 import os
 import time
-import threading
-import traceback
 import profile, pstats, io
 from inspect import isfunction, isclass
 from datetime import datetime, timezone, timedelta
@@ -27,11 +25,11 @@ from org.openhab.core.persistence.extensions import PersistenceExtensions as Jav
 from org.openhab.core.model.script.actions import Semantics as Java_Semantics
 
 from org.openhab.core.items import Item as Java_Item, MetadataKey as Java_MetadataKey, Metadata as Java_Metadata, ItemNotFoundException as Java_ItemNotFoundException
-from org.openhab.core.types import PrimitiveType as Java_PrimitiveType, UnDefType as Java_UnDefType, State as Java_State, Command as Java_Command
+from org.openhab.core.types import PrimitiveType as Java_PrimitiveType, UnDefType as Java_UnDefType, State as Java_State
 from org.openhab.core.library.types import DecimalType as Java_DecimalType, UpDownType as Java_UpDownType, PercentType as Java_PercentType, DateTimeType as Java_DateTimeType
 
 from java.time import ZonedDateTime as Java_ZonedDateTime, Instant as Java_Instant
-from java.lang import Object as Java_Object, Iterable as Java_Iterable, Exception as Java_Exception
+from java.lang import Object as Java_Object
 from java.util import UUID
 
 from org.openhab.core.items import MetadataRegistry
