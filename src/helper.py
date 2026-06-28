@@ -117,7 +117,7 @@ class rule():
             self.name = None
             self(name)
 
-    def __call__(self, clazz_or_function: Union[Callable, object]):
+    def __call__(self, clazz_or_function: Callable | object):
         proxy = self
 
         rule_isfunction = isfunction(clazz_or_function)
@@ -199,7 +199,7 @@ class rule():
 
         return rule_obj
 
-    def executeWrapper(self, rule_obj: Union[Callable, object], rule_isfunction: bool, module: dict[str, Any], input: dict[str, Any]):
+    def executeWrapper(self, rule_obj: Callable | object, rule_isfunction: bool, module: dict[str, Any], input: dict[str, Any]):
         try:
             start_time = time.perf_counter()
 
@@ -235,55 +235,77 @@ ForeignNone.__getattr__ = __foreignNoneFallback__
 
 @interop_type(Java_Instant)
 class Instant(datetime):
+    _ATTR_MAPPING: dict[str, Any] = {
+        "_year": lambda s: datetime.fromtimestamp(s.getEpochSecond()).year,
+        "_month": lambda s: datetime.fromtimestamp(s.getEpochSecond()).month,
+        "_day": lambda s: datetime.fromtimestamp(s.getEpochSecond()).day,
+        "_hour": lambda s: datetime.fromtimestamp(s.getEpochSecond()).hour,
+        "_minute": lambda s: datetime.fromtimestamp(s.getEpochSecond()).minute,
+        "_second": lambda s: datetime.fromtimestamp(s.getEpochSecond()).second,
+        "_microsecond": lambda s: int(s.getNano() / 1000),
+        "_tzinfo": lambda _: None,
+        "_hashcode": lambda _: -1,
+        "_fold": lambda _: 0,
+    }
+
     def __new__(cls, year: int, month: int, day: int, hour: int = 0, minute: int = 0, second: int = 0,
-                microsecond: int = 0, tzinfo = None, *, fold = 0):
+                microsecond: int = 0, tzinfo: Union[datetime.tzinfo, None] = None, *, fold = 0):
         return datetime(year=year, month=month, day=day, hour=hour, minute=minute, second=second, microsecond=microsecond, tzinfo=tzinfo, fold=fold)
 
     def __getattribute__(self, name: str):
-        match name:
-            case "_year": return datetime.fromtimestamp(super().getEpochSecond()).year
-            case "_month": return datetime.fromtimestamp(super().getEpochSecond()).month
-            case "_day": return datetime.fromtimestamp(super().getEpochSecond()).day
-            case "_hour": return datetime.fromtimestamp(super().getEpochSecond()).hour
-            case "_minute": return datetime.fromtimestamp(super().getEpochSecond()).minute
-            case "_second": return datetime.fromtimestamp(super().getEpochSecond()).second
-            case "_microsecond": return int(super().getNano() / 1000)
-            case "_tzinfo": return None
-            case "_hashcode": return -1
-            case "_fold": return 0
+        if name == "_ATTR_MAPPING":
+            return super().__getattribute__(name)
+        if name in self._ATTR_MAPPING:
+            return self._ATTR_MAPPING[name](super())
         return super().__getattribute__(name)
 
     def __hash__(self):
         return hash(self._getstate())
 
 @interop_type(Java_ZonedDateTime)
-class DateTime(Instant):
+class DateTime(datetime):
+    _ATTR_MAPPING: dict[str, Any] = {
+        "_year": lambda s: s.getYear(),
+        "_month": lambda s: s.getMonthValue(),
+        "_day": lambda s: s.getDayOfMonth(),
+        "_hour": lambda s: s.getHour(),
+        "_minute": lambda s: s.getMinute(),
+        "_second": lambda s: s.getSecond(),
+        "_microsecond": lambda s: int(s.getNano() / 1000),
+        "_tzinfo": lambda s: timezone(timedelta(seconds=s.getOffset().getTotalSeconds()), s.getZone().getId()),
+        "_hashcode": lambda _: -1,
+        "_fold": lambda _: 0,
+    }
+
+    def __new__(cls, year: int, month: int, day: int, hour: int = 0, minute: int = 0, second: int = 0,
+                microsecond: int = 0, tzinfo = None, *, fold = 0):
+        return datetime(year=year, month=month, day=day, hour=hour, minute=minute, second=second, microsecond=microsecond, tzinfo=tzinfo, fold=fold)
+
     def __getattribute__(self, name: str):
-        match name:
-            case "_year": return super().getYear()
-            case "_month": return super().getMonthValue()
-            case "_day": return super().getDayOfMonth()
-            case "_hour": return super().getHour()
-            case "_minute": return super().getMinute()
-            case "_second": return super().getSecond()
-            case "_tzinfo": return timezone(timedelta(seconds=super().getOffset().getTotalSeconds()), super().getZone().getId())
+        if name == "_ATTR_MAPPING":
+            return super().__getattribute__(name)
+        if name in self._ATTR_MAPPING:
+            return self._ATTR_MAPPING[name](super())
         return super().__getattribute__(name)
+
+    def __hash__(self):
+        return hash(self._getstate())
 
 @interop_type(Java_Item)
 class Item(Java_Item if TYPE_CHECKING else object):
-    def postUpdate(self, state: Union[Java_State, int, float, str], source: str = None):
+    def postUpdate(self, state: Union[Java_State, int, float, str], source: str | None = None):
         scope.events.postUpdate(self, state, source)
 
-    def postUpdateIfDifferent(self, state: Union[Java_State, int, float, str], source: str = None) -> bool:
+    def postUpdateIfDifferent(self, state: Union[Java_State, int, float, str], source: str | None = None) -> bool:
         if not Item._checkIfDifferent(self.getState(), state):
             return False
         self.postUpdate(state, source)
         return True
 
-    def sendCommand(self, command: Union[Java_State, int, float, str], source: str = None):
+    def sendCommand(self, command: Union[Java_State, int, float, str], source: str | None = None):
         scope.events.sendCommand(self, command, source)
 
-    def sendCommandIfDifferent(self, command: Union[Java_State, int, float, str], source: str = None) -> bool:
+    def sendCommandIfDifferent(self, command: Union[Java_State, int, float, str], source: str | None = None) -> bool:
         if not Item._checkIfDifferent(self.getState(), command):
             return False
         self.sendCommand(command, source)
@@ -293,7 +315,7 @@ class Item(Java_Item if TYPE_CHECKING else object):
         return ITEM_CHANNEL_LINK_REGISTRY.getBoundThings(self.getName())
 
     def getChannels(self) -> list[Java_Channel]:
-        return list(map(lambda uid: Registry.getChannel(uid.getAsString()), ITEM_CHANNEL_LINK_REGISTRY.getBoundChannels(self.getName())))
+        return [Registry.getChannel(uid.getAsString()) for uid in ITEM_CHANNEL_LINK_REGISTRY.getBoundChannels(self.getName())]
 
     def getChannelUIDs(self) -> list[str]:
         return ITEM_CHANNEL_LINK_REGISTRY.getBoundChannels(self.getName())
@@ -327,7 +349,7 @@ class Item(Java_Item if TYPE_CHECKING else object):
 
         raise NotFoundException("Link {} not found".format(channel_uid))
 
-    def getPersistence(self, service_id: str = None) -> 'ItemPersistence':
+    def getPersistence(self, service_id: str | None = None) -> 'ItemPersistence':
         return ItemPersistence(self, service_id)
 
     def getSemantic(self) -> 'ItemSemantic':
@@ -388,10 +410,10 @@ class ItemSemantic(Java_Semantics if TYPE_CHECKING else _JavaCallProxy):
         super().__init__(Java_Semantics, lambda *args: tuple([item]) + args)
 
 class ItemPersistence(Java_PersistenceExtensions if TYPE_CHECKING else _JavaCallProxy):
-    def __init__(self, item: Item, service_id: str = None):
+    def __init__(self, item: Item, service_id: str | None = None):
         super().__init__(Java_PersistenceExtensions, lambda *args: tuple([item]) + args + tuple([] if service_id is None else [service_id]) )
 
-    def getStableMinMaxState(self, time_slot: int, end_time: datetime = None) -> tuple[Java_DecimalType,Java_DecimalType,Java_DecimalType]:
+    def getStableMinMaxState(self, time_slot: int, end_time: datetime | None = None) -> tuple[Java_DecimalType,Java_DecimalType,Java_DecimalType]:
         current_end_time = datetime.now().astimezone() if end_time is None else end_time
         min_time = current_end_time - timedelta(seconds=time_slot)
 
@@ -409,9 +431,9 @@ class ItemPersistence(Java_PersistenceExtensions if TYPE_CHECKING else _JavaCall
             _duration = ( currentStartTime - current_end_time ).total_seconds()
             _value = entry.getState().doubleValue()
 
-            if min_value == None or min_value > _value:
+            if min_value is None or min_value > _value:
                 min_value = _value
-            if max_value == None or max_value < _value:
+            if max_value is None or max_value < _value:
                 max_value = _value
 
             duration = duration + _duration
@@ -425,7 +447,7 @@ class ItemPersistence(Java_PersistenceExtensions if TYPE_CHECKING else _JavaCall
 
         return ( Java_DecimalType(value / duration), Java_DecimalType(min_value), Java_DecimalType(max_value) )
 
-    def getStableState(self, time_slot: int, end_time: datetime = None) -> Java_DecimalType:
+    def getStableState(self, time_slot: int, end_time: datetime | None = None) -> Java_DecimalType:
         value, _, _ = self.getStableMinMaxState(time_slot, end_time)
         return value
 
@@ -436,8 +458,8 @@ class ItemMetadata():
     def get(self, namespace: str) -> Java_Metadata:
         return METADATA_REGISTRY.get(Java_MetadataKey(namespace, self.item.getName()))
 
-    def set(self, namespace: str, value, configuration=None) -> Java_Metadata:
-        if self.get(namespace) == None:
+    def set(self, namespace: str, value, configuration = None) -> Java_Metadata:
+        if self.get(namespace) is None:
             return METADATA_REGISTRY.add(Java_Metadata(Java_MetadataKey(namespace, self.item.getName()), value, configuration))
         else:
             return METADATA_REGISTRY.update(Java_Metadata(Java_MetadataKey(namespace, self.item.getName()), value, configuration))
