@@ -1,5 +1,5 @@
 import builtins
-from typing import TYPE_CHECKING, Callable, Union
+from typing import TYPE_CHECKING, Callable, Union, Any
 
 from polyglot import ForeignNone, interop_type
 
@@ -16,6 +16,7 @@ from datetime import datetime, timezone, timedelta
 
 from openhab.jsr223 import TopCallStackFrame
 from openhab.services import getService
+from openhab.triggers import BaseTrigger, BaseCondition
 
 from org.openhab.core.config.core import Configuration
 
@@ -45,8 +46,8 @@ METADATA_REGISTRY = getService(MetadataRegistry)
 ITEM_BUILDER_FACTORY = getService(ItemBuilderFactory)
 ITEM_CHANNEL_LINK_REGISTRY = getService(ItemChannelLinkRegistry)
 
-def versiontuple(v):
-    return tuple(map(lambda part: int(part) if part.isdigit() else 0, (v.split("."))))
+def versiontuple(v: str) -> tuple[int, ...]:
+    return tuple(map(lambda part: int(part) if part.isdigit() else 0, v.split(".")))
 BUNDLE_VERSION = versiontuple(".".join(osgi.bundleContext.getBundle().getVersion().toString().split(".")[:3]))
 
 # **** LOGGING ****
@@ -99,7 +100,7 @@ class NotFoundException(Exception):
     pass
 
 class rule():
-    def __init__(self, name: str = None, description: str = None, tags: list[str] = None, triggers: list = None, conditions: list = None, uid: str = None, runtime_measurement: bool = True, profile_code: bool = False):
+    def __init__(self, name: str | None = None, description: str | None = None, tags: list[str] | None = None, triggers: list[BaseTrigger] | None = None, conditions: list[BaseCondition] | None = None, uid: str | None = None, runtime_measurement: bool = True, profile_code: bool = False):
         self.name = name
         self.description = description
         self.tags = tags
@@ -198,7 +199,7 @@ class rule():
 
         return rule_obj
 
-    def executeWrapper(self, rule_obj: Union[Callable, object], rule_isfunction: bool, module: dict[str, any], input: dict[str, any]):
+    def executeWrapper(self, rule_obj: Union[Callable, object], rule_isfunction: bool, module: dict[str, Any], input: dict[str, Any]):
         try:
             start_time = time.perf_counter()
 
@@ -234,8 +235,8 @@ ForeignNone.__getattr__ = __foreignNoneFallback__
 
 @interop_type(Java_Instant)
 class Instant(datetime):
-    def __new__(cls, year: int, month: int = None, day: int = None, hour: int = 0, minute: int = 0, second: int = 0,
-                microsecond=0, tzinfo=None, *, fold=0):
+    def __new__(cls, year: int, month: int, day: int, hour: int = 0, minute: int = 0, second: int = 0,
+                microsecond: int = 0, tzinfo = None, *, fold = 0):
         return datetime(year=year, month=month, day=day, hour=hour, minute=minute, second=second, microsecond=microsecond, tzinfo=tzinfo, fold=fold)
 
     def __getattribute__(self, name: str):
@@ -341,7 +342,7 @@ class Item(Java_Item if TYPE_CHECKING else object):
         return ''.join([c if c.isalnum() else '_' for c in s.replace('"', '').replace("'", '')])
 
     @staticmethod
-    def _checkIfDifferent(current_state: any, new_state: any):
+    def _checkIfDifferent(current_state: Any, new_state: Any):
         if not java.instanceof(current_state, Java_UnDefType):
             if java.instanceof(current_state, Java_PercentType):
                 if isinstance(new_state, str):
@@ -351,6 +352,12 @@ class Item(Java_Item if TYPE_CHECKING else object):
                         new_state = 100
                 elif java.instanceof(new_state, Java_UpDownType):
                     new_state = (0 if new_state.toFullString() == "UP" else 100)
+            elif java.instanceof(current_state, Java_PrimitiveType):
+                current_state = current_state.toFullString()
+            elif isinstance(current_state, datetime):
+                current_state = current_state.isoformat()
+            else:
+                current_state = str(current_state)
 
             if java.instanceof(new_state, Java_PrimitiveType):
                 new_state = new_state.toFullString()
@@ -358,13 +365,6 @@ class Item(Java_Item if TYPE_CHECKING else object):
                 new_state = new_state.isoformat()
             else:
                 new_state = str(new_state)
-
-            if java.instanceof(current_state, Java_PrimitiveType):
-                current_state = current_state.toFullString()
-            elif isinstance(current_state, datetime):
-                current_state = current_state.isoformat()
-            else:
-                current_state = str(current_state)
 
             return current_state != new_state
         return True
@@ -423,7 +423,7 @@ class ItemPersistence(Java_PersistenceExtensions if TYPE_CHECKING else _JavaCall
 
             entry = self.persistedState(current_end_time)
 
-        return [ Java_DecimalType(value / duration), Java_DecimalType(min_value), Java_DecimalType(max_value) ]
+        return ( Java_DecimalType(value / duration), Java_DecimalType(min_value), Java_DecimalType(max_value) )
 
     def getStableState(self, time_slot: int, end_time: datetime = None) -> Java_DecimalType:
         value, _, _ = self.getStableMinMaxState(time_slot, end_time)
