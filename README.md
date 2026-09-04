@@ -343,7 +343,6 @@ from openhab.triggers import when
 @when("Item Test_String_1 changed from 'old test string' to 'new test string'")
 @when("Item gTest_Contact_Sensors changed")
 @when("Member of gTest_Contact_Sensors changed from ON to OFF")
-@when("Descendent of gTest_Contact_Sensors changed from OPEN to CLOSED")
 
 @when("Item Test_Switch_2 received update ON")
 @when("Member of gTest_Switches received update")
