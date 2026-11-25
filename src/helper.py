@@ -131,9 +131,7 @@ class rule():
         elif hasattr(rule_obj, "buildTriggers") and callable(rule_obj.buildTriggers):
             triggers = rule_obj.buildTriggers()
 
-        raw_triggers = []
-        for trigger in triggers:
-            raw_triggers.append(trigger.raw_trigger)
+        raw_triggers = [trigger.raw_trigger for trigger in triggers]
 
         conditions = []
         if proxy.conditions is not None:
@@ -405,49 +403,14 @@ class _JavaCallProxy:
 
 class ItemSemantic(Java_Semantics if TYPE_CHECKING else _JavaCallProxy):
     def __init__(self, item: Item):
-        super().__init__(Java_Semantics, lambda *args: tuple([item]) + args)
+        item_args = tuple([item])
+        super().__init__(Java_Semantics, lambda *args: item_args + args)
 
 class ItemPersistence(Java_PersistenceExtensions if TYPE_CHECKING else _JavaCallProxy):
     def __init__(self, item: Item, service_id: str | None = None):
-        super().__init__(Java_PersistenceExtensions, lambda *args: tuple([item]) + args + tuple([] if service_id is None else [service_id]) )
-
-    def getStableMinMaxState(self, time_slot: int, end_time: datetime | None = None) -> tuple[Java_DecimalType,Java_DecimalType,Java_DecimalType]:
-        current_end_time = datetime.now().astimezone() if end_time is None else end_time
-        min_time = current_end_time - timedelta(seconds=time_slot)
-
-        min_value = max_value = None
-        value = duration = 0.0
-
-        entry = self.persistedState(current_end_time)
-
-        while True:
-            currentStartTime = entry.getTimestamp()
-
-            if currentStartTime < min_time:
-                currentStartTime = min_time
-
-            _duration = ( currentStartTime - current_end_time ).total_seconds()
-            _value = entry.getState().doubleValue()
-
-            if min_value is None or min_value > _value:
-                min_value = _value
-            if max_value is None or max_value < _value:
-                max_value = _value
-
-            duration = duration + _duration
-            value = value + ( _value * _duration )
-
-            current_end_time = currentStartTime - timedelta(microseconds=1)
-            if current_end_time < min_time:
-                break
-
-            entry = self.persistedState(current_end_time)
-
-        return ( Java_DecimalType(value / duration), Java_DecimalType(min_value), Java_DecimalType(max_value) )
-
-    def getStableState(self, time_slot: int, end_time: datetime | None = None) -> Java_DecimalType:
-        value, _, _ = self.getStableMinMaxState(time_slot, end_time)
-        return value
+        item_args = tuple([item])
+        service_args = tuple([] if service_id is None else [service_id])
+        super().__init__(Java_PersistenceExtensions, lambda *args: item_args + args + service_args )
 
 class ItemMetadata():
     def __init__(self, item):
@@ -493,8 +456,6 @@ class Registry():
 
     @staticmethod
     def getItemState(item_name: str, default: Java_PrimitiveType = None) -> Java_PrimitiveType:
-        if not isinstance(item_name, str):
-            raise Exception("Unsupported parameter type {}".format(type(item_name)))
         state = scope.items.get(item_name)
         if state is None:
             raise NotFoundException("Item state for {} not found".format(item_name))
@@ -504,8 +465,6 @@ class Registry():
 
     @staticmethod
     def getItem(item_name: str) -> Item:
-        if not isinstance(item_name, str):
-            raise Exception("Unsupported parameter type {}".format(type(item_name)))
         try:
             return scope.itemRegistry.getItem(item_name)
         except Java_ItemNotFoundException:
@@ -519,8 +478,6 @@ class Registry():
 
     @staticmethod
     def removeItem(item_name: str, recursive: bool = False) -> Item:
-        if not isinstance(item_name, str):
-            raise Exception("Unsupported parameter type {}".format(type(item_name)))
         try:
             item = scope.itemRegistry.getItem(item_name)
             scope.itemRegistry.remove(item_name, recursive)
